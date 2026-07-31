@@ -21,7 +21,7 @@ export function PostCard({ post }: { post: Post }) {
           src={cover.posterUrl ?? cover.url}
           alt={cover.alt}
           fill
-          sizes="(min-width: 1540px) 20vw, (min-width: 1120px) 25vw, (min-width: 760px) 33vw, (min-width: 460px) 50vw, 100vw"
+          sizes="(min-width: 1120px) 395px, (min-width: 760px) 33vw, (min-width: 460px) 50vw, 100vw"
           className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
         />
         <span className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/0 to-black/0 opacity-40 transition-opacity duration-300 group-hover:opacity-100" />
@@ -29,9 +29,9 @@ export function PostCard({ post }: { post: Post }) {
           <Image
             src={post.creatorAvatarUrl}
             alt=""
-            width={28}
-            height={28}
-            className="size-7 shrink-0 rounded-full object-cover shadow-[0_2px_8px_rgba(0,0,0,0.18)]"
+            width={35}
+            height={35}
+            className="size-[35px] shrink-0 rounded-full border border-[#e6e6e6] object-cover shadow-[0_2px_8px_rgba(0,0,0,0.18)]"
           />
           <span className="min-w-0 translate-y-1 opacity-0 transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100">
             <span className="block truncate text-[13px] font-medium leading-tight text-white">

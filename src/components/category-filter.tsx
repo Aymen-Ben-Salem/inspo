@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Route } from "next";
 
 import { POST_CATEGORIES, type PostCategory } from "@/domain/post";
 
@@ -12,14 +13,14 @@ export function CategoryFilter({ current }: { current?: PostCategory }) {
     >
       {categories.map((category) => {
         const active = category === "All" ? !current : current === category;
-        const href = category === "All" ? "/" : `/?category=${encodeURIComponent(category)}`;
+        const href = (category === "All" ? "/" : `/?category=${encodeURIComponent(category)}`) as Route;
 
         return (
           <Link
             key={category}
             href={href}
             aria-current={active ? "page" : undefined}
-            className={`focus-ring inline-flex h-7 shrink-0 items-center rounded-full px-3 text-[13px] leading-none transition-colors ${
+            className={`focus-ring inline-flex h-[29px] shrink-0 items-center rounded-full px-3 text-[14px] leading-none tracking-[0.2px] transition-colors ${
               active
                 ? "bg-black text-white"
                 : "bg-[#f0f0f0] text-[#727272] hover:bg-[#e4e4e4] hover:text-[#444]"

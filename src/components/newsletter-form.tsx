@@ -34,7 +34,7 @@ export function NewsletterForm({ compact = false }: { compact?: boolean }) {
 
       form.reset();
       setStatus("success");
-      setMessage("You’re on the list.");
+      setMessage("You're on the list.");
     } catch (error) {
       setStatus("error");
       setMessage(error instanceof Error ? error.message : "Could not subscribe right now.");
@@ -43,14 +43,17 @@ export function NewsletterForm({ compact = false }: { compact?: boolean }) {
 
   if (status === "success") {
     return (
-      <p className={compact ? "text-xs text-[#777]" : "text-sm text-[#505050]"} role="status">
+      <p className={compact ? "text-center text-xs text-[#777]" : "text-sm text-[#505050]"} role="status">
         {message}
       </p>
     );
   }
 
   return (
-    <form className="flex min-w-0 items-center gap-2" onSubmit={handleSubmit}>
+    <form
+      className={`flex min-w-0 items-center gap-[10px] ${compact ? "w-[335px]" : "w-full max-w-[335px]"}`}
+      onSubmit={handleSubmit}
+    >
       <label className="sr-only" htmlFor={compact ? "header-email" : "detail-email"}>
         Email address
       </label>
@@ -61,9 +64,7 @@ export function NewsletterForm({ compact = false }: { compact?: boolean }) {
         autoComplete="email"
         required
         placeholder="you@email.com"
-        className={`focus-ring min-w-0 rounded-full border border-[#e6e6e6] bg-[#fafafa] text-[#555] outline-none transition-colors placeholder:text-[#929292] focus:border-[#aaa] ${
-          compact ? "w-[148px] px-3 py-[6px] text-[13px]" : "flex-1 px-4 py-2.5 text-sm"
-        }`}
+        className="focus-ring h-[37px] min-w-0 flex-1 rounded-full border border-[#e6e6e6] bg-[#fafafa] px-3 text-[14px] tracking-[-0.002em] text-[#555] outline-none transition-colors placeholder:text-[#8b8b8b] focus:border-[#aaa]"
       />
       <input
         name="company"
@@ -76,11 +77,9 @@ export function NewsletterForm({ compact = false }: { compact?: boolean }) {
       <button
         type="submit"
         disabled={status === "pending"}
-        className={`focus-ring shrink-0 rounded-full bg-[#262626] text-white transition-colors hover:bg-black disabled:cursor-wait disabled:opacity-60 ${
-          compact ? "px-3 py-[6px] text-[13px]" : "px-4 py-2.5 text-sm"
-        }`}
+        className="focus-ring h-[37px] shrink-0 rounded-full bg-[#262626] px-3 text-[14px] tracking-[-0.002em] text-white transition-colors hover:bg-black disabled:cursor-wait disabled:opacity-60"
       >
-        {status === "pending" ? "joining…" : "subscribe"}
+        {status === "pending" ? "joining..." : "subscribe"}
       </button>
       {status === "error" ? (
         <span className="sr-only" role="alert">

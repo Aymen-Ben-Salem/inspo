@@ -1,22 +1,26 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { DetailHeader } from "@/components/detail-header";
 import { PostGallery } from "@/components/post-gallery";
 import { PostMetadata } from "@/components/post-metadata";
-import { seedPosts } from "@/data/seed-posts";
+import {
+  getPostBySlug,
+  getPosts,
+  getPublishedSlugs,
+} from "@/data/posts-repository";
 
 type PostPageProps = {
   params: Promise<{ slug: string }>;
 };
 
-export function generateStaticParams() {
-  return seedPosts.map((post) => ({ slug: post.slug }));
+export async function generateStaticParams() {
+  const slugs = await getPublishedSlugs();
+  return slugs.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: PostPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const post = seedPosts.find((candidate) => candidate.slug === slug);
+  const post = await getPostBySlug(slug);
 
   if (!post) return {};
 
@@ -35,17 +39,19 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
 
 export default async function PostPage({ params }: PostPageProps) {
   const { slug } = await params;
-  const post = seedPosts.find((candidate) => candidate.slug === slug);
+  const post = await getPostBySlug(slug);
 
   if (!post) notFound();
 
+  const posts = await getPosts();
+  const currentIndex = posts.findIndex((candidate) => candidate.id === post.id);
+  const previousPost = posts[(currentIndex - 1 + posts.length) % posts.length] ?? post;
+  const nextPost = posts[(currentIndex + 1) % posts.length] ?? post;
+
   return (
-    <main className="flex min-h-[100dvh] w-full max-w-full flex-col overflow-x-hidden bg-white">
-      <DetailHeader />
-      <div className="flex min-h-0 flex-1 flex-col lg:h-[calc(100dvh-61px)] lg:flex-row lg:overflow-hidden">
-        <PostMetadata post={post} />
-        <PostGallery post={post} />
-      </div>
+    <main className="flex min-h-[100dvh] w-full max-w-full flex-col overflow-x-hidden bg-[#262626] lg:h-[100dvh] lg:flex-row lg:overflow-hidden">
+      <PostGallery post={post} />
+      <PostMetadata post={post} previousPost={previousPost} nextPost={nextPost} />
     </main>
   );
 }

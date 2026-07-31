@@ -2,10 +2,9 @@
 
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { PropsWithChildren, useRef } from "react";
 
-gsap.registerPlugin(useGSAP, ScrollTrigger);
+gsap.registerPlugin(useGSAP);
 
 export function DetailMotion({ children }: PropsWithChildren) {
   const scope = useRef<HTMLDivElement>(null);
@@ -14,25 +13,11 @@ export function DetailMotion({ children }: PropsWithChildren) {
     () => {
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-      const items = gsap.utils.toArray<HTMLElement>("[data-detail-media]");
-      items.forEach((item) => {
-        gsap.fromTo(
-          item,
-          { autoAlpha: 0.45, scale: 0.96 },
-          {
-            autoAlpha: 1,
-            scale: 1,
-            duration: 0.7,
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: item,
-              scroller: scope.current,
-              start: "top 85%",
-              once: true,
-            },
-          },
-        );
-      });
+      gsap.fromTo(
+        "[data-detail-media]",
+        { autoAlpha: 0, scale: 0.985 },
+        { autoAlpha: 1, scale: 1, duration: 0.65, ease: "power3.out", stagger: 0.08 },
+      );
     },
     { scope },
   );
@@ -40,7 +25,7 @@ export function DetailMotion({ children }: PropsWithChildren) {
   return (
     <div
       ref={scope}
-      className="flex min-h-0 flex-1 snap-y snap-mandatory flex-col gap-4 overflow-y-auto bg-[#f3f3f3] p-3 sm:p-6 lg:p-10"
+      className="flex min-h-[72dvh] min-w-0 flex-1 snap-x snap-mandatory items-center overflow-x-auto overflow-y-hidden bg-[#262626] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:h-[100dvh]"
     >
       {children}
     </div>

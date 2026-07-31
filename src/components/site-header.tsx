@@ -8,22 +8,20 @@ import { NewsletterForm } from "./newsletter-form";
 
 export function SiteHeader({ category }: { category?: PostCategory }) {
   return (
-    <header className="sticky top-0 z-40 border-b border-[#efefef] bg-white/95 backdrop-blur-md">
-      <div className="relative flex h-[60px] items-center justify-center">
+    <header className="relative z-40 bg-white">
+      <div className="mx-auto flex max-w-[1705px] items-center gap-5 px-4 pb-5 pt-10 sm:px-5 2xl:px-11">
         <Link href="/" aria-label="n inspiration home" className="focus-ring rounded-lg">
           <Image
             src="/brand/n-mark.png"
             alt="n"
-            width={52}
-            height={52}
+            width={45}
+            height={41}
             priority
-            className="size-[52px] object-contain"
+            className="h-[41px] w-[45px] object-cover"
           />
         </Link>
-      </div>
-      <div className="flex items-center justify-between gap-3 px-3 pb-3 sm:px-5">
         <CategoryFilter current={category} />
-        <div className="hidden shrink-0 sm:block">
+        <div className="hidden w-[335px] shrink-0 xl:block">
           <NewsletterForm compact />
         </div>
       </div>

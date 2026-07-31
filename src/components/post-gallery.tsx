@@ -11,7 +11,7 @@ export function PostGallery({ post }: { post: Post }) {
         <figure
           key={media.id}
           data-detail-media
-          className="relative flex min-h-[68dvh] w-full shrink-0 snap-center items-center justify-center overflow-hidden rounded-[12px]"
+          className="flex h-full min-w-full snap-center items-center justify-center px-4 py-16 lg:py-0"
         >
           {media.type === "video" ? (
             <video
@@ -20,7 +20,7 @@ export function PostGallery({ post }: { post: Post }) {
               controls
               playsInline
               preload="metadata"
-              className="max-h-[calc(100dvh-142px)] max-w-full rounded-[12px] object-contain shadow-2xl"
+              className="h-auto max-h-[79.2dvh] max-w-full rounded-[10px] object-cover"
             >
               <track kind="captions" />
             </video>
@@ -30,9 +30,9 @@ export function PostGallery({ post }: { post: Post }) {
               alt={media.alt}
               width={media.width}
               height={media.height}
-              sizes="(min-width: 1024px) calc(100vw - 420px), 100vw"
+              sizes="(min-width: 1024px) 48vw, 90vw"
               priority={media.position === 0}
-              className="max-h-[calc(100dvh-142px)] w-auto max-w-full rounded-[12px] object-contain shadow-2xl"
+              className="h-auto max-h-[79.2dvh] max-w-full rounded-[10px] object-cover lg:h-[79.2dvh] lg:w-auto"
             />
           )}
         </figure>
