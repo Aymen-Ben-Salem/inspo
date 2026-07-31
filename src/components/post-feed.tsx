@@ -1,0 +1,24 @@
+import type { Post } from "@/domain/post";
+
+import { FeedMotion } from "./feed-motion";
+import { PostCard } from "./post-card";
+
+export function PostFeed({ posts }: { posts: Post[] }) {
+  if (posts.length === 0) {
+    return (
+      <div className="flex min-h-[45dvh] items-center justify-center px-6 text-center text-sm text-[#777]">
+        No posts in this category yet.
+      </div>
+    );
+  }
+
+  return (
+    <FeedMotion>
+      <div className="feed-columns">
+        {posts.map((post) => (
+          <PostCard key={post.id} post={post} />
+        ))}
+      </div>
+    </FeedMotion>
+  );
+}
