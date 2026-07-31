@@ -1,8 +1,8 @@
 export const POST_CATEGORIES = [
   "Web",
-  "Interface",
   "Branding",
   "Product",
+  "Motion",
   "Illustration",
   "3D",
   "Print",
