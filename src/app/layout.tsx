@@ -1,0 +1,34 @@
+import type { Metadata } from "next";
+import localFont from "next/font/local";
+import type { ReactNode } from "react";
+
+import "./globals.css";
+
+const inter = localFont({
+  src: "../assets/fonts/inter.woff2",
+  display: "swap",
+  variable: "--font-inter",
+  weight: "100 900",
+});
+
+export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  title: {
+    default: "n — Inspiration",
+    template: "%s — n",
+  },
+  description: "A curated archive of recent visual design and creative work.",
+  openGraph: {
+    type: "website",
+    title: "n — Inspiration",
+    description: "A curated archive of recent visual design and creative work.",
+  },
+};
+
+export default function RootLayout({ children }: { children: ReactNode }) {
+  return (
+    <html lang="en" className={inter.variable}>
+      <body className="font-[family-name:var(--font-inter)]">{children}</body>
+    </html>
+  );
+}
