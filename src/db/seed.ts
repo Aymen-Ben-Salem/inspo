@@ -16,28 +16,12 @@ if (!connectionString) {
 
 const database = drizzle({ client: neon(connectionString) });
 
-for (const post of seedPosts) {
-  const [savedPost] = await database
-    .insert(posts)
-    .values({
-      slug: post.slug,
-      title: post.title,
-      creatorName: post.creatorName,
-      creatorHandle: post.creatorHandle,
-      creatorUrl: post.creatorUrl,
-      creatorAvatarUrl: post.creatorAvatarUrl,
-      description: post.description,
-      category: post.category,
-      industries: post.industries,
-      colors: post.colors,
-      styles: post.styles,
-      sourceUrl: post.sourceUrl,
-      status: "published",
-      publishedAt: new Date(post.publishedAt),
-    })
-    .onConflictDoUpdate({
-      target: posts.slug,
-      set: {
+async function main() {
+  for (const post of seedPosts) {
+    const [savedPost] = await database
+      .insert(posts)
+      .values({
+        slug: post.slug,
         title: post.title,
         creatorName: post.creatorName,
         creatorHandle: post.creatorHandle,
@@ -51,38 +35,61 @@ for (const post of seedPosts) {
         sourceUrl: post.sourceUrl,
         status: "published",
         publishedAt: new Date(post.publishedAt),
-        updatedAt: new Date(),
-      },
-    })
-    .returning({ id: posts.id });
-
-  if (!savedPost) throw new Error(`Could not seed post: ${post.slug}`);
-
-  for (const media of post.media) {
-    await database
-      .insert(postMedia)
-      .values({
-        postId: savedPost.id,
-        type: media.type,
-        url: media.url,
-        posterUrl: media.posterUrl,
-        alt: media.alt,
-        width: media.width,
-        height: media.height,
-        position: media.position,
       })
       .onConflictDoUpdate({
-        target: [postMedia.postId, postMedia.position],
+        target: posts.slug,
         set: {
+          title: post.title,
+          creatorName: post.creatorName,
+          creatorHandle: post.creatorHandle,
+          creatorUrl: post.creatorUrl,
+          creatorAvatarUrl: post.creatorAvatarUrl,
+          description: post.description,
+          category: post.category,
+          industries: post.industries,
+          colors: post.colors,
+          styles: post.styles,
+          sourceUrl: post.sourceUrl,
+          status: "published",
+          publishedAt: new Date(post.publishedAt),
+          updatedAt: new Date(),
+        },
+      })
+      .returning({ id: posts.id });
+
+    if (!savedPost) throw new Error(`Could not seed post: ${post.slug}`);
+
+    for (const media of post.media) {
+      await database
+        .insert(postMedia)
+        .values({
+          postId: savedPost.id,
           type: media.type,
           url: media.url,
           posterUrl: media.posterUrl,
           alt: media.alt,
           width: media.width,
           height: media.height,
-        },
-      });
+          position: media.position,
+        })
+        .onConflictDoUpdate({
+          target: [postMedia.postId, postMedia.position],
+          set: {
+            type: media.type,
+            url: media.url,
+            posterUrl: media.posterUrl,
+            alt: media.alt,
+            width: media.width,
+            height: media.height,
+          },
+        });
+    }
   }
+
+  console.log(`Seeded ${seedPosts.length} posts into Neon.`);
 }
 
-console.log(`Seeded ${seedPosts.length} posts into Neon.`);
+main().catch((error: unknown) => {
+  console.error("Failed to seed Neon:", error);
+  process.exitCode = 1;
+});
