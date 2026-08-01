@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getConfiguredAdminUserIds } from "./config";
+import { getClerkAuthorizedParties, getConfiguredAdminUserIds } from "./config";
 
 describe("admin authentication configuration", () => {
   afterEach(() => {
@@ -17,5 +17,25 @@ describe("admin authentication configuration", () => {
     vi.stubEnv("ADMIN_USER_IDS", " user_alpha,not-a-clerk-id,user_beta,user_alpha ");
 
     expect([...getConfiguredAdminUserIds()]).toEqual(["user_alpha", "user_beta"]);
+  });
+
+  it("allowlists configured and Vercel deployment origins", () => {
+    vi.stubEnv("SITE_URL", "https://inspora.example/path");
+    vi.stubEnv("VERCEL_URL", "inspora-git-main.vercel.app");
+    vi.stubEnv("VERCEL_PROJECT_PRODUCTION_URL", "inspora.vercel.app");
+
+    expect(getClerkAuthorizedParties()).toEqual([
+      "https://inspora.example",
+      "https://inspora-git-main.vercel.app",
+      "https://inspora.vercel.app",
+    ]);
+  });
+
+  it("ignores malformed origins and removes duplicates", () => {
+    vi.stubEnv("SITE_URL", "http://localhost:3000");
+    vi.stubEnv("VERCEL_URL", "http://localhost:3000");
+    vi.stubEnv("VERCEL_PROJECT_PRODUCTION_URL", "://invalid");
+
+    expect(getClerkAuthorizedParties()).toEqual(["http://localhost:3000"]);
   });
 });

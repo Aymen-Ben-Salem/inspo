@@ -4,6 +4,29 @@ export function isClerkConfigured() {
   );
 }
 
+function toOrigin(value: string | undefined) {
+  if (!value) return undefined;
+
+  try {
+    const candidate = value.includes("://") ? value : `https://${value}`;
+    return new URL(candidate).origin;
+  } catch {
+    return undefined;
+  }
+}
+
+export function getClerkAuthorizedParties() {
+  return Array.from(
+    new Set(
+      [
+        toOrigin(process.env.SITE_URL),
+        toOrigin(process.env.VERCEL_URL),
+        toOrigin(process.env.VERCEL_PROJECT_PRODUCTION_URL),
+      ].filter((origin): origin is string => Boolean(origin)),
+    ),
+  );
+}
+
 function isClerkUserId(userId: string) {
   return userId.startsWith("user_") && userId !== "user_REPLACE_ME";
 }
