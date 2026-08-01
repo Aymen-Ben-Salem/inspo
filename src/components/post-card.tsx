@@ -10,7 +10,7 @@ export function PostCard({ post }: { post: Post }) {
   if (!cover) return null;
 
   return (
-    <article data-feed-card className="mb-3 break-inside-avoid opacity-0">
+    <article data-feed-card className="mb-3 break-inside-avoid">
       <Link
         href={`/posts/${post.slug}` as Route}
         aria-label={`View post: ${post.title}`}
