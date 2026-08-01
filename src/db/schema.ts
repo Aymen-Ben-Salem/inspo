@@ -80,6 +80,8 @@ export const postMedia = pgTable(
     type: text("type").default("image").notNull(),
     url: text("url").notNull(),
     posterUrl: text("poster_url"),
+    storageProvider: text("storage_provider"),
+    storageKey: text("storage_key"),
     alt: text("alt").default("").notNull(),
     width: integer("width").notNull(),
     height: integer("height").notNull(),
@@ -91,6 +93,10 @@ export const postMedia = pgTable(
   (table) => [
     uniqueIndex("post_media_post_position_unique").on(table.postId, table.position),
     check("post_media_type_valid", sql`${table.type} in ('image', 'video')`),
+    check(
+      "post_media_storage_consistent",
+      sql`(${table.storageProvider} is null and ${table.storageKey} is null) or (${table.storageProvider} = 'cloudinary' and length(trim(${table.storageKey})) > 0)`,
+    ),
     check("post_media_dimensions_valid", sql`${table.width} > 0 and ${table.height} > 0`),
     check("post_media_position_valid", sql`${table.position} >= 0`),
   ],

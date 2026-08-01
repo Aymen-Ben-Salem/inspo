@@ -6,7 +6,12 @@ import { requireDatabase } from "@/db/client";
 import { adminAuditLogs, postMedia, posts } from "@/db/schema";
 import type { MediaType } from "@/domain/post";
 
-import type { AdminPostInput, AdminPostRecord, AdminPostStatus } from "./types";
+import type {
+  AdminPostInput,
+  AdminPostRecord,
+  AdminPostStatus,
+  ManagedMediaAsset,
+} from "./types";
 
 type PostRow = typeof posts.$inferSelect;
 type MediaRow = typeof postMedia.$inferSelect;
@@ -35,6 +40,9 @@ function mapAdminPost(row: PostRow & { media: MediaRow[] }): AdminPostRecord {
       type: media.type as MediaType,
       url: media.url,
       posterUrl: media.posterUrl ?? undefined,
+      storageProvider:
+        media.storageProvider === "cloudinary" ? media.storageProvider : undefined,
+      storageKey: media.storageKey ?? undefined,
       alt: media.alt,
       width: media.width,
       height: media.height,
@@ -48,11 +56,27 @@ function mediaValues(postId: string, input: AdminPostInput) {
     type: media.type,
     url: media.url,
     posterUrl: media.posterUrl,
+    storageProvider: media.storageProvider,
+    storageKey: media.storageKey,
     alt: media.alt,
     width: media.width,
     height: media.height,
     position,
   }));
+}
+
+function managedAssets(media: MediaRow[]): ManagedMediaAsset[] {
+  return media.flatMap((item) =>
+    item.storageProvider === "cloudinary" && item.storageKey
+      ? [
+          {
+            storageProvider: item.storageProvider,
+            storageKey: item.storageKey,
+            type: item.type as MediaType,
+          },
+        ]
+      : [],
+  );
 }
 
 function postValues(input: AdminPostInput) {
@@ -130,13 +154,22 @@ export async function updateAdminPost(
   actorId: string,
 ) {
   const database = requireDatabase();
-  const existing = await database.query.posts.findFirst({ where: eq(posts.id, id) });
+  const existing = await database.query.posts.findFirst({
+    where: eq(posts.id, id),
+    with: { media: true },
+  });
 
   if (!existing) throw new Error("Post not found.");
 
   const now = new Date();
   const publishedAt =
     input.status === "published" ? (existing.publishedAt ?? now) : null;
+  const retainedStorageKeys = new Set(
+    input.media.flatMap((media) => (media.storageKey ? [media.storageKey] : [])),
+  );
+  const removedManagedMedia = managedAssets(existing.media).filter(
+    (media) => !retainedStorageKeys.has(media.storageKey),
+  );
 
   return database.transaction(async (transaction) => {
     const [updated] = await transaction
@@ -168,7 +201,7 @@ export async function updateAdminPost(
       },
     });
 
-    return { ...updated, previousSlug: existing.slug };
+    return { ...updated, previousSlug: existing.slug, removedManagedMedia };
   });
 }
 
@@ -199,6 +232,14 @@ export async function archiveAdminPost(id: string, actorId: string) {
 
 export async function deleteArchivedPost(id: string, actorId: string) {
   const database = requireDatabase();
+  const existing = await database.query.posts.findFirst({
+    where: and(eq(posts.id, id), eq(posts.status, "archived")),
+    with: { media: true },
+  });
+
+  if (!existing) throw new Error("Archive the post before deleting it permanently.");
+
+  const removedManagedMedia = managedAssets(existing.media);
 
   return database.transaction(async (transaction) => {
     const [deleted] = await transaction
@@ -216,6 +257,6 @@ export async function deleteArchivedPost(id: string, actorId: string) {
       details: { slug: deleted.slug },
     });
 
-    return deleted;
+    return { ...deleted, removedManagedMedia };
   });
 }

@@ -1,0 +1,3 @@
+ALTER TABLE "post_media" ADD COLUMN "storage_provider" text;--> statement-breakpoint
+ALTER TABLE "post_media" ADD COLUMN "storage_key" text;--> statement-breakpoint
+ALTER TABLE "post_media" ADD CONSTRAINT "post_media_storage_consistent" CHECK (("post_media"."storage_provider" is null and "post_media"."storage_key" is null) or ("post_media"."storage_provider" = 'cloudinary' and length(trim("post_media"."storage_key")) > 0));

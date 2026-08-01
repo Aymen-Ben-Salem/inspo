@@ -43,3 +43,11 @@ export type Post = {
 export function isPostCategory(value: string): value is PostCategory {
   return POST_CATEGORIES.some((category) => category === value);
 }
+
+export function isGifUrl(value: string) {
+  try {
+    return new URL(value, "https://inspora.local").pathname.toLowerCase().endsWith(".gif");
+  } catch {
+    return false;
+  }
+}

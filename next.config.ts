@@ -1,8 +1,10 @@
 import type { NextConfig } from "next";
 
-const remoteImageHostnames = ["images.unsplash.com", process.env.MEDIA_HOSTNAME].filter(
-  (hostname): hostname is string => Boolean(hostname),
-);
+const remoteImageHostnames = [
+  "images.unsplash.com",
+  "res.cloudinary.com",
+  process.env.MEDIA_HOSTNAME,
+].filter((hostname): hostname is string => Boolean(hostname));
 
 const nextConfig: NextConfig = {
   images: {

@@ -1,11 +1,20 @@
 import type { MediaType, PostCategory } from "@/domain/post";
 
 export type AdminPostStatus = "draft" | "published" | "archived";
+export type MediaStorageProvider = "cloudinary";
+
+export type ManagedMediaAsset = {
+  storageProvider: MediaStorageProvider;
+  storageKey: string;
+  type: MediaType;
+};
 
 export type AdminMediaInput = {
   type: MediaType;
   url: string;
   posterUrl?: string;
+  storageProvider?: MediaStorageProvider;
+  storageKey?: string;
   alt: string;
   width: number;
   height: number;

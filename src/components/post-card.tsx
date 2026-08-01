@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Route } from "next";
 
-import type { Post } from "@/domain/post";
+import { isGifUrl, type Post } from "@/domain/post";
 
 export function PostCard({ post }: { post: Post }) {
   const cover = post.media[0];
@@ -21,6 +21,7 @@ export function PostCard({ post }: { post: Post }) {
           src={cover.posterUrl ?? cover.url}
           alt={cover.alt}
           fill
+          unoptimized={isGifUrl(cover.posterUrl ?? cover.url)}
           sizes="(min-width: 1120px) 395px, (min-width: 760px) 33vw, (min-width: 460px) 50vw, 100vw"
           className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
         />

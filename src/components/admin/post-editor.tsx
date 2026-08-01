@@ -4,8 +4,10 @@ import type { Route } from "next";
 import Link from "next/link";
 import { useActionState, useState } from "react";
 
-import { POST_CATEGORIES } from "@/domain/post";
 import { AdminMediaPreview } from "@/components/admin/media-preview";
+import { MediaUploadButton } from "@/components/admin/media-upload-button";
+import { POST_CATEGORIES } from "@/domain/post";
+import type { UploadedAdminMedia } from "@/features/admin/media-upload";
 import {
   initialAdminActionState,
   type AdminActionState,
@@ -47,8 +49,25 @@ export function PostEditor({
 
   function updateMedia(index: number, field: keyof MediaDraft, value: string) {
     setMedia((current) =>
+      current.map((item, itemIndex) => {
+        if (itemIndex !== index) return item;
+
+        const ownershipChanged = field === "url" && value !== item.url;
+        return {
+          ...item,
+          [field]: value,
+          ...(ownershipChanged
+            ? { storageProvider: undefined, storageKey: undefined }
+            : {}),
+        };
+      }),
+    );
+  }
+
+  function applyUploadedMedia(index: number, uploaded: UploadedAdminMedia) {
+    setMedia((current) =>
       current.map((item, itemIndex) =>
-        itemIndex === index ? { ...item, [field]: value } : item,
+        itemIndex === index ? { ...item, ...uploaded } : item,
       ),
     );
   }
@@ -179,7 +198,7 @@ export function PostEditor({
                   className="aspect-[4/3] min-h-56 lg:aspect-auto lg:h-full"
                 />
                 <div className="grid gap-4 p-4 sm:p-5">
-                  <div className="flex items-center justify-between gap-4">
+                  <div className="flex flex-wrap items-start justify-between gap-4">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium">Media {index + 1}</span>
                       {index === 0 ? (
@@ -187,19 +206,29 @@ export function PostEditor({
                           Cover
                         </span>
                       ) : null}
+                      {item.storageProvider === "cloudinary" ? (
+                        <span className="rounded-full bg-[#e7e7e4] px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.08em] text-[#666]">
+                          Cloudinary
+                        </span>
+                      ) : null}
                     </div>
-                    <button
-                      type="button"
-                      disabled={media.length === 1}
-                      onClick={() =>
-                        setMedia((current) =>
-                          current.filter((_, itemIndex) => itemIndex !== index),
-                        )
-                      }
-                      className="focus-ring text-xs text-[#777] underline-offset-4 hover:text-black hover:underline disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                      Remove
-                    </button>
+                    <div className="flex flex-wrap items-start justify-end gap-3">
+                      <MediaUploadButton
+                        onUploaded={(uploaded) => applyUploadedMedia(index, uploaded)}
+                      />
+                      <button
+                        type="button"
+                        disabled={media.length === 1}
+                        onClick={() =>
+                          setMedia((current) =>
+                            current.filter((_, itemIndex) => itemIndex !== index),
+                          )
+                        }
+                        className="focus-ring h-9 px-1 text-xs text-[#777] underline-offset-4 hover:text-black hover:underline disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        Remove
+                      </button>
+                    </div>
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <label className={labelClass}>
@@ -207,6 +236,7 @@ export function PostEditor({
                       <select
                         className={inputClass}
                         value={item.type}
+                        disabled={Boolean(item.storageProvider)}
                         onChange={(event) => updateMedia(index, "type", event.target.value)}
                       >
                         <option value="image">Image</option>
@@ -219,7 +249,7 @@ export function PostEditor({
                         className={inputClass}
                         required
                         value={item.url}
-                        placeholder="https://… or /media/image.jpg"
+                        placeholder="https://... or /media/image.jpg"
                         onChange={(event) => updateMedia(index, "url", event.target.value)}
                       />
                     </label>

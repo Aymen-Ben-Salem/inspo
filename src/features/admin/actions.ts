@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { requireAdmin } from "@/auth/require-admin";
+import { deleteManagedMediaAssetsSafely } from "@/storage/cloudinary";
 
 import { formatValidationError, parseAdminPostForm } from "./post-validation";
 import {
@@ -85,6 +86,8 @@ export async function updatePostAction(
     return postErrorState(error);
   }
 
+  await deleteManagedMediaAssetsSafely(updated.removedManagedMedia);
+
   revalidatePostPaths(updated.slug, updated.previousSlug);
   redirect(`/admin/posts/${postId}/edit?saved=updated` as Route);
 }
@@ -102,6 +105,8 @@ export async function deletePostAction(formData: FormData) {
   const { userId } = await requireAdmin();
   const id = idSchema.parse(formData.get("id"));
   const deleted = await deleteArchivedPost(id, userId);
+
+  await deleteManagedMediaAssetsSafely(deleted.removedManagedMedia);
 
   revalidatePostPaths(deleted.slug);
   redirect("/admin/posts" as Route);

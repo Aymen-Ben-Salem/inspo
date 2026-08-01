@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { seedPosts } from "../data/seed-posts";
 
-import { isPostCategory, POST_CATEGORIES } from "./post";
+import { isGifUrl, isPostCategory, POST_CATEGORIES } from "./post";
 
 describe("post categories", () => {
   it("accepts every category exposed by the feed", () => {
@@ -11,6 +11,14 @@ describe("post categories", () => {
     }
 
     expect(isPostCategory("Interface")).toBe(false);
+  });
+});
+
+describe("GIF media", () => {
+  it("recognizes local and remote GIF paths without relying on query parameters", () => {
+    expect(isGifUrl("/media/loop.GIF?version=2")).toBe(true);
+    expect(isGifUrl("https://res.cloudinary.com/demo/image/upload/loop.gif")).toBe(true);
+    expect(isGifUrl("https://example.com/image.jpg?format=gif")).toBe(false);
   });
 });
 

@@ -10,7 +10,9 @@ function isAllowedAssetUrl(value: string) {
   try {
     const url = new URL(value);
     const allowedHostnames = new Set(
-      ["images.unsplash.com", process.env.MEDIA_HOSTNAME].filter(Boolean),
+      ["images.unsplash.com", "res.cloudinary.com", process.env.MEDIA_HOSTNAME].filter(
+        Boolean,
+      ),
     );
     return url.protocol === "https:" && allowedHostnames.has(url.hostname);
   } catch {
@@ -34,14 +36,21 @@ const optionalAssetUrl = z
   .union([z.literal(""), localOrRemoteUrl])
   .transform((value) => value || undefined);
 
-const mediaSchema = z.object({
-  type: z.enum(["image", "video"]),
-  url: localOrRemoteUrl,
-  posterUrl: optionalAssetUrl,
-  alt: z.string().trim().max(500),
-  width: z.coerce.number().int().min(1).max(12000),
-  height: z.coerce.number().int().min(1).max(12000),
-});
+const mediaSchema = z
+  .object({
+    type: z.enum(["image", "video"]),
+    url: localOrRemoteUrl,
+    posterUrl: optionalAssetUrl,
+    storageProvider: z.enum(["cloudinary"]).optional(),
+    storageKey: z.string().trim().min(1).max(1024).optional(),
+    alt: z.string().trim().max(500),
+    width: z.coerce.number().int().min(1).max(12000),
+    height: z.coerce.number().int().min(1).max(12000),
+  })
+  .refine(
+    (media) => Boolean(media.storageProvider) === Boolean(media.storageKey),
+    "Managed media must include its storage provider and key.",
+  );
 
 function commaSeparated(value: FormDataEntryValue | null) {
   return String(value ?? "")

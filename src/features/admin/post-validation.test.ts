@@ -52,4 +52,47 @@ describe("admin post validation", () => {
 
     expect(() => parseAdminPostForm(form)).toThrow();
   });
+
+  it("preserves valid managed-media ownership metadata", () => {
+    const form = validForm();
+    form.set(
+      "media",
+      JSON.stringify([
+        {
+          type: "video",
+          url: "https://res.cloudinary.com/demo/video/upload/example.mp4",
+          posterUrl: "https://res.cloudinary.com/demo/video/upload/example.jpg",
+          storageProvider: "cloudinary",
+          storageKey: "inspora/posts/example",
+          alt: "Example motion clip",
+          width: 1920,
+          height: 1080,
+        },
+      ]),
+    );
+
+    expect(parseAdminPostForm(form).media[0]).toMatchObject({
+      storageProvider: "cloudinary",
+      storageKey: "inspora/posts/example",
+    });
+  });
+
+  it("rejects incomplete managed-media ownership metadata", () => {
+    const form = validForm();
+    form.set(
+      "media",
+      JSON.stringify([
+        {
+          type: "image",
+          url: "https://res.cloudinary.com/demo/image/upload/example.jpg",
+          storageProvider: "cloudinary",
+          alt: "Example",
+          width: 1200,
+          height: 900,
+        },
+      ]),
+    );
+
+    expect(() => parseAdminPostForm(form)).toThrow();
+  });
 });

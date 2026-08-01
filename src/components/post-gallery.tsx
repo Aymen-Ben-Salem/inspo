@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-import type { Post } from "@/domain/post";
+import { isGifUrl, type Post } from "@/domain/post";
 
 import { DetailMotion } from "./detail-motion";
 
@@ -30,6 +30,7 @@ export function PostGallery({ post }: { post: Post }) {
               alt={media.alt}
               width={media.width}
               height={media.height}
+              unoptimized={isGifUrl(media.url)}
               sizes="(min-width: 1024px) 48vw, 90vw"
               priority={media.position === 0}
               className="h-auto max-h-[79.2dvh] max-w-full rounded-[10px] object-cover lg:h-[79.2dvh] lg:w-auto"
