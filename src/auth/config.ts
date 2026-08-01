@@ -12,3 +12,7 @@ export function getConfiguredAdminUserIds() {
       .filter(Boolean),
   );
 }
+
+export function isAdminAccessConfigured() {
+  return isClerkConfigured() && getConfiguredAdminUserIds().size > 0;
+}
