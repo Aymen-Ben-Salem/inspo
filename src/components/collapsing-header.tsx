@@ -29,8 +29,8 @@ export function CollapsingHeader({ children }: PropsWithChildren) {
       />
       <header className="sticky top-0 z-40 bg-white">
         <div
-          className={`mx-auto flex max-w-[1705px] items-center gap-5 px-4 pb-5 transition-[padding-top] duration-300 ease-out motion-reduce:transition-none sm:px-5 2xl:px-11 ${
-            isCompact ? "pt-0" : "pt-10"
+          className={`mx-auto flex max-w-[1705px] items-center gap-5 px-4 transition-[padding-top,padding-bottom] duration-300 ease-out motion-reduce:transition-none sm:px-5 2xl:px-11 ${
+            isCompact ? "py-3" : "pb-5 pt-10"
           }`}
         >
           {children}
