@@ -1,6 +1,7 @@
 import type { AdminMediaInput } from "./types";
 
-export const MAX_MEDIA_UPLOAD_BYTES = 100 * 1024 * 1024;
+export const MAX_IMAGE_UPLOAD_BYTES = 10 * 1024 * 1024;
+export const MAX_VIDEO_UPLOAD_BYTES = 100 * 1024 * 1024;
 
 export const ACCEPTED_MEDIA_MIME_TYPES = [
   "image/avif",
@@ -12,6 +13,14 @@ export const ACCEPTED_MEDIA_MIME_TYPES = [
   "video/quicktime",
   "video/webm",
 ] as const;
+
+export type AcceptedMediaMimeType = (typeof ACCEPTED_MEDIA_MIME_TYPES)[number];
+
+export function getMediaUploadLimit(contentType: AcceptedMediaMimeType) {
+  return contentType.startsWith("video/")
+    ? MAX_VIDEO_UPLOAD_BYTES
+    : MAX_IMAGE_UPLOAD_BYTES;
+}
 
 export type MediaUploadSignatureResult =
   | {

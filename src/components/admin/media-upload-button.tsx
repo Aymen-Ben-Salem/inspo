@@ -5,7 +5,7 @@ import { useRef, useState } from "react";
 import { createMediaUploadSignatureAction } from "@/features/admin/media-actions";
 import {
   ACCEPTED_MEDIA_MIME_TYPES,
-  MAX_MEDIA_UPLOAD_BYTES,
+  getMediaUploadLimit,
   parseCloudinaryUploadResponse,
   type UploadedAdminMedia,
 } from "@/features/admin/media-upload";
@@ -25,11 +25,9 @@ export function MediaUploadButton({
   async function upload(file: File) {
     setError("");
 
-    if (
-      !ACCEPTED_MEDIA_MIME_TYPES.some((contentType) => contentType === file.type) ||
-      file.size > MAX_MEDIA_UPLOAD_BYTES
-    ) {
-      setError("Choose a supported image, GIF, or video no larger than 100 MB.");
+    const contentType = ACCEPTED_MEDIA_MIME_TYPES.find((type) => type === file.type);
+    if (!contentType || file.size > getMediaUploadLimit(contentType)) {
+      setError("Images and GIFs can be up to 10 MB; videos up to 100 MB.");
       return;
     }
 

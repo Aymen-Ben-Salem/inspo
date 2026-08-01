@@ -10,14 +10,15 @@ import {
 
 import {
   ACCEPTED_MEDIA_MIME_TYPES,
-  MAX_MEDIA_UPLOAD_BYTES,
+  getMediaUploadLimit,
+  MAX_VIDEO_UPLOAD_BYTES,
   type MediaUploadSignatureResult,
 } from "./media-upload";
 
 const uploadRequestSchema = z.object({
   fileName: z.string().trim().min(1).max(255),
   contentType: z.enum(ACCEPTED_MEDIA_MIME_TYPES),
-  size: z.number().int().positive().max(MAX_MEDIA_UPLOAD_BYTES),
+  size: z.number().int().positive().max(MAX_VIDEO_UPLOAD_BYTES),
 });
 
 export async function createMediaUploadSignatureAction(
@@ -26,10 +27,13 @@ export async function createMediaUploadSignatureAction(
   await requireAdmin();
 
   const parsed = uploadRequestSchema.safeParse(input);
-  if (!parsed.success) {
+  if (
+    !parsed.success ||
+    parsed.data.size > getMediaUploadLimit(parsed.data.contentType)
+  ) {
     return {
       ok: false,
-      message: "Choose a supported image, GIF, or video no larger than 100 MB.",
+      message: "Images and GIFs can be up to 10 MB; videos up to 100 MB.",
     };
   }
 
