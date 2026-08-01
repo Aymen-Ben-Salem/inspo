@@ -8,7 +8,7 @@ import { NewsletterForm } from "./newsletter-form";
 
 export function SiteHeader({ category }: { category?: PostCategory }) {
   return (
-    <header className="relative z-40 bg-white">
+    <header className="sticky top-0 z-40 bg-white">
       <div className="mx-auto flex max-w-[1705px] items-center gap-5 px-4 pb-5 pt-10 sm:px-5 2xl:px-11">
         <Link href="/" aria-label="n inspiration home" className="focus-ring rounded-lg">
           <Image
