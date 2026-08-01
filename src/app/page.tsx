@@ -17,7 +17,7 @@ export default async function Home({ searchParams }: HomeProps) {
     : allPosts;
 
   return (
-    <main className="min-h-[100dvh] w-full max-w-full overflow-x-hidden bg-white">
+    <main className="min-h-[100dvh] w-full max-w-full overflow-x-clip bg-white">
       <SiteHeader category={category} />
       <section
         aria-label="Design inspiration"
