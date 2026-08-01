@@ -2,7 +2,7 @@ import "server-only";
 
 import { auth } from "@clerk/nextjs/server";
 import type { Route } from "next";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 
 import { getConfiguredAdminUserIds, isClerkConfigured } from "./config";
 
@@ -23,7 +23,7 @@ export async function requireAdmin() {
   const { userId } = await auth();
 
   if (!userId) redirect("/sign-in?redirect_url=/admin" as Route);
-  if (!adminUserIds.has(userId)) notFound();
+  if (!adminUserIds.has(userId)) redirect("/admin-access-denied" as Route);
 
   return { userId };
 }

@@ -13,5 +13,5 @@ export default function proxy(request: NextRequest, event: NextFetchEvent) {
 }
 
 export const config = {
-  matcher: ["/admin(.*)", "/sign-in(.*)"],
+  matcher: ["/admin(.*)", "/admin-access-denied(.*)", "/sign-in(.*)"],
 };

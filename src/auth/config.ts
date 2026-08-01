@@ -4,12 +4,16 @@ export function isClerkConfigured() {
   );
 }
 
+function isClerkUserId(userId: string) {
+  return userId.startsWith("user_") && userId !== "user_REPLACE_ME";
+}
+
 export function getConfiguredAdminUserIds() {
   return new Set(
     (process.env.ADMIN_USER_IDS ?? "")
       .split(",")
       .map((userId) => userId.trim())
-      .filter(Boolean),
+      .filter(isClerkUserId),
   );
 }
 
