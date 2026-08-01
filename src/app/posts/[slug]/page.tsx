@@ -13,6 +13,8 @@ type PostPageProps = {
   params: Promise<{ slug: string }>;
 };
 
+export const revalidate = 300;
+
 export async function generateStaticParams() {
   const slugs = await getPublishedSlugs();
   return slugs.map((slug) => ({ slug }));

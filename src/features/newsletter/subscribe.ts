@@ -2,7 +2,8 @@ import "server-only";
 
 import { z } from "zod";
 
-import { createAdminSupabaseClient } from "@/lib/supabase/admin";
+import { getDatabase } from "@/db/client";
+import { subscribers } from "@/db/schema";
 
 export const subscriptionSchema = z
   .object({
@@ -24,17 +25,19 @@ export async function subscribeToNewsletter(input: unknown) {
 
   if (parsed.company) return;
 
-  const supabase = createAdminSupabaseClient();
-  if (!supabase) throw new NewsletterUnavailableError();
+  const database = getDatabase();
+  if (!database) throw new NewsletterUnavailableError();
 
-  const { error } = await supabase.from("subscribers").upsert(
-    {
+  try {
+    await database
+      .insert(subscribers)
+      .values({
       email: parsed.email,
       source: parsed.source,
-      consented_at: new Date().toISOString(),
-    },
-    { onConflict: "email", ignoreDuplicates: true },
-  );
-
-  if (error) throw new Error(`Could not save subscription: ${error.message}`);
+        consentedAt: new Date(),
+      })
+      .onConflictDoNothing({ target: subscribers.email });
+  } catch (cause) {
+    throw new Error("Could not save subscription.", { cause });
+  }
 }
