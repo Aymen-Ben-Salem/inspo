@@ -8,6 +8,7 @@ import type { ReactNode } from "react";
 
 import { getConfiguredAdminUserIds, isClerkConfigured } from "@/auth/config";
 import { requireAdmin } from "@/auth/require-admin";
+import { BrandMark } from "@/components/brand-mark";
 
 export const dynamic = "force-dynamic";
 
@@ -70,8 +71,12 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     <div className="min-h-[100dvh] bg-[#f5f5f2] text-[#171717]">
       <header className="sticky top-0 z-40 border-b border-black/10 bg-[#f5f5f2]/95 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-[1440px] items-center gap-8 px-5 sm:px-8">
-          <Link href={"/admin/posts" as Route} className="focus-ring text-lg font-medium tracking-[-0.04em]">
-            Inspora admin
+          <Link
+            href={"/admin/posts" as Route}
+            aria-label="Inspora admin posts"
+            className="focus-ring rounded-lg"
+          >
+            <BrandMark priority />
           </Link>
           <nav className="flex items-center gap-1 text-sm text-[#666]" aria-label="Admin">
             <Link
