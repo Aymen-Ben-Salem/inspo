@@ -1,0 +1,105 @@
+import { z } from "zod";
+
+import { POST_CATEGORIES } from "../../domain/post";
+
+import type { AdminPostInput } from "./types";
+
+function isAllowedAssetUrl(value: string) {
+  if (value.startsWith("/")) return true;
+
+  try {
+    const url = new URL(value);
+    const allowedHostnames = new Set(
+      ["images.unsplash.com", process.env.MEDIA_HOSTNAME].filter(Boolean),
+    );
+    return url.protocol === "https:" && allowedHostnames.has(url.hostname);
+  } catch {
+    return false;
+  }
+}
+
+const localOrRemoteUrl = z
+  .string()
+  .trim()
+  .refine(
+    isAllowedAssetUrl,
+    "Use a local path or an https URL from the configured media hostname.",
+  );
+
+const optionalRemoteUrl = z
+  .union([z.literal(""), z.url()])
+  .transform((value) => value || undefined);
+
+const optionalAssetUrl = z
+  .union([z.literal(""), localOrRemoteUrl])
+  .transform((value) => value || undefined);
+
+const mediaSchema = z.object({
+  type: z.enum(["image", "video"]),
+  url: localOrRemoteUrl,
+  posterUrl: optionalAssetUrl,
+  alt: z.string().trim().max(500),
+  width: z.coerce.number().int().min(1).max(12000),
+  height: z.coerce.number().int().min(1).max(12000),
+});
+
+function commaSeparated(value: FormDataEntryValue | null) {
+  return String(value ?? "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, 30);
+}
+
+const postSchema = z.object({
+  slug: z
+    .string()
+    .trim()
+    .min(1)
+    .max(120)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Use lowercase letters, numbers, and hyphens."),
+  title: z.string().trim().min(1).max(200),
+  creatorName: z.string().trim().min(1).max(160),
+  creatorHandle: z.string().trim().max(160).optional(),
+  creatorUrl: optionalRemoteUrl,
+  creatorAvatarUrl: localOrRemoteUrl,
+  description: z.string().trim().min(1).max(4000),
+  category: z.enum(POST_CATEGORIES),
+  industries: z.array(z.string().max(80)).max(30),
+  colors: z.array(z.string().max(80)).max(30),
+  styles: z.array(z.string().max(80)).max(30),
+  sourceUrl: z.url(),
+  status: z.enum(["draft", "published"]),
+  media: z.array(mediaSchema).min(1, "Add at least one media item.").max(20),
+});
+
+export function parseAdminPostForm(formData: FormData): AdminPostInput {
+  let media: unknown;
+
+  try {
+    media = JSON.parse(String(formData.get("media") ?? "[]"));
+  } catch {
+    media = [];
+  }
+
+  return postSchema.parse({
+    slug: formData.get("slug"),
+    title: formData.get("title"),
+    creatorName: formData.get("creatorName"),
+    creatorHandle: String(formData.get("creatorHandle") ?? "") || undefined,
+    creatorUrl: formData.get("creatorUrl"),
+    creatorAvatarUrl: formData.get("creatorAvatarUrl"),
+    description: formData.get("description"),
+    category: formData.get("category"),
+    industries: commaSeparated(formData.get("industries")),
+    colors: commaSeparated(formData.get("colors")),
+    styles: commaSeparated(formData.get("styles")),
+    sourceUrl: formData.get("sourceUrl"),
+    status: formData.get("status"),
+    media,
+  });
+}
+
+export function formatValidationError(error: z.ZodError) {
+  return error.issues[0]?.message ?? "Check the form and try again.";
+}

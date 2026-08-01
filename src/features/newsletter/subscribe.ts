@@ -32,11 +32,20 @@ export async function subscribeToNewsletter(input: unknown) {
     await database
       .insert(subscribers)
       .values({
-      email: parsed.email,
-      source: parsed.source,
+        email: parsed.email,
+        source: parsed.source,
         consentedAt: new Date(),
       })
-      .onConflictDoNothing({ target: subscribers.email });
+      .onConflictDoUpdate({
+        target: subscribers.email,
+        set: {
+          source: parsed.source,
+          status: "active",
+          consentedAt: new Date(),
+          unsubscribedAt: null,
+          updatedAt: new Date(),
+        },
+      });
   } catch (cause) {
     throw new Error("Could not save subscription.", { cause });
   }

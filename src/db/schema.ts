@@ -3,6 +3,7 @@ import {
   check,
   index,
   integer,
+  jsonb,
   pgTable,
   text,
   timestamp,
@@ -38,6 +39,9 @@ export const posts = pgTable(
     sourceUrl: text("source_url").notNull(),
     status: text("status").default("draft").notNull(),
     publishedAt: timestamp("published_at", { withTimezone: true, mode: "date" }),
+    archivedAt: timestamp("archived_at", { withTimezone: true, mode: "date" }),
+    createdBy: text("created_by"),
+    updatedBy: text("updated_by"),
     ...timestamps,
   },
   (table) => [
@@ -54,10 +58,14 @@ export const posts = pgTable(
       "posts_category_valid",
       sql`${table.category} in ('Web', 'Branding', 'Product', 'Motion', 'Illustration', '3D', 'Print')`,
     ),
-    check("posts_status_valid", sql`${table.status} in ('draft', 'published')`),
+    check("posts_status_valid", sql`${table.status} in ('draft', 'published', 'archived')`),
     check(
       "posts_published_at_required",
-      sql`${table.status} = 'draft' or ${table.publishedAt} is not null`,
+      sql`${table.status} <> 'published' or ${table.publishedAt} is not null`,
+    ),
+    check(
+      "posts_archived_at_consistent",
+      sql`(${table.status} = 'archived' and ${table.archivedAt} is not null) or (${table.status} <> 'archived' and ${table.archivedAt} is null)`,
     ),
   ],
 );
@@ -94,16 +102,47 @@ export const subscribers = pgTable(
     id: uuid("id").defaultRandom().primaryKey(),
     email: text("email").notNull(),
     source: text("source").default("website").notNull(),
+    status: text("status").default("active").notNull(),
     consentedAt: timestamp("consented_at", { withTimezone: true, mode: "date" })
       .defaultNow()
       .notNull(),
+    unsubscribedAt: timestamp("unsubscribed_at", { withTimezone: true, mode: "date" }),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("subscribers_email_unique").on(table.email),
+    index("subscribers_status_created_at_idx").on(table.status, table.createdAt.desc()),
+    check("subscribers_email_length", sql`length(${table.email}) between 3 and 254`),
+    check("subscribers_status_valid", sql`${table.status} in ('active', 'unsubscribed')`),
+    check(
+      "subscribers_unsubscribed_at_consistent",
+      sql`(${table.status} = 'unsubscribed' and ${table.unsubscribedAt} is not null) or (${table.status} = 'active' and ${table.unsubscribedAt} is null)`,
+    ),
+  ],
+);
+
+export const adminAuditLogs = pgTable(
+  "admin_audit_logs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    actorId: text("actor_id").notNull(),
+    action: text("action").notNull(),
+    resourceType: text("resource_type").notNull(),
+    resourceId: uuid("resource_id"),
+    details: jsonb("details").$type<Record<string, unknown>>().default({}).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
       .defaultNow()
       .notNull(),
   },
   (table) => [
-    uniqueIndex("subscribers_email_unique").on(table.email),
-    check("subscribers_email_length", sql`length(${table.email}) between 3 and 254`),
+    index("admin_audit_logs_created_at_idx").on(table.createdAt.desc()),
+    index("admin_audit_logs_actor_created_at_idx").on(table.actorId, table.createdAt.desc()),
+    check("admin_audit_logs_actor_not_blank", sql`length(trim(${table.actorId})) > 0`),
+    check("admin_audit_logs_action_not_blank", sql`length(trim(${table.action})) > 0`),
+    check(
+      "admin_audit_logs_resource_type_valid",
+      sql`${table.resourceType} in ('post', 'subscriber')`,
+    ),
   ],
 );
 
