@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 
 import { POST_CATEGORIES } from "@/domain/post";
+import { AdminMediaPreview } from "@/components/admin/media-preview";
 import {
   initialAdminActionState,
   type AdminActionState,
@@ -147,11 +148,13 @@ export function PostEditor({
           </div>
         </section>
 
-        <section className="grid gap-5 rounded-2xl border border-black/10 bg-white p-5 sm:p-6">
+        <section className="grid gap-6 rounded-2xl border border-black/10 bg-white p-5 sm:p-6">
           <div className="flex items-end justify-between gap-4">
             <div>
-              <p className="text-xs uppercase tracking-[0.14em] text-[#888]">Gallery</p>
-              <h2 className="mt-1 text-xl font-medium tracking-[-0.03em]">Media</h2>
+              <h2 className="text-xl font-medium tracking-[-0.03em]">Media gallery</h2>
+              <p className="mt-1 text-sm leading-relaxed text-[#777]">
+                The first item becomes the cover shown in the archive.
+              </p>
             </div>
             <button
               type="button"
@@ -161,85 +164,111 @@ export function PostEditor({
               Add media
             </button>
           </div>
-          <p className="text-sm leading-relaxed text-[#777]">
-            Use local paths or image/video URLs from a hostname configured in Next.js. The first item is the feed cover.
-          </p>
-          <div className="grid gap-4">
+          <div className="grid gap-5">
             {media.map((item, index) => (
-              <div key={index} className="grid gap-4 rounded-xl bg-[#f5f5f2] p-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Media {index + 1}</span>
-                  <button
-                    type="button"
-                    disabled={media.length === 1}
-                    onClick={() => setMedia((current) => current.filter((_, itemIndex) => itemIndex !== index))}
-                    className="text-xs text-[#777] underline-offset-4 hover:text-black hover:underline disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    Remove
-                  </button>
-                </div>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <label className={labelClass}>
-                    Type
-                    <select
-                      className={inputClass}
-                      value={item.type}
-                      onChange={(event) => updateMedia(index, "type", event.target.value)}
+              <article
+                key={index}
+                className="group grid overflow-hidden rounded-2xl border border-black/10 bg-[#f7f7f4] lg:grid-cols-[minmax(220px,0.8fr)_minmax(0,1.6fr)]"
+              >
+                <AdminMediaPreview
+                  type={item.type}
+                  url={item.url}
+                  posterUrl={item.posterUrl}
+                  alt={item.alt || `Media ${index + 1} preview`}
+                  controls={item.type === "video"}
+                  className="aspect-[4/3] min-h-56 lg:aspect-auto lg:h-full"
+                />
+                <div className="grid gap-4 p-4 sm:p-5">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">Media {index + 1}</span>
+                      {index === 0 ? (
+                        <span className="rounded-full bg-black px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.08em] text-white">
+                          Cover
+                        </span>
+                      ) : null}
+                    </div>
+                    <button
+                      type="button"
+                      disabled={media.length === 1}
+                      onClick={() =>
+                        setMedia((current) =>
+                          current.filter((_, itemIndex) => itemIndex !== index),
+                        )
+                      }
+                      className="focus-ring text-xs text-[#777] underline-offset-4 hover:text-black hover:underline disabled:cursor-not-allowed disabled:opacity-40"
                     >
-                      <option value="image">Image</option>
-                      <option value="video">Video</option>
-                    </select>
-                  </label>
-                  <label className={`${labelClass} sm:col-span-2`}>
-                    Media URL or local path
-                    <input
-                      className={inputClass}
-                      required
-                      value={item.url}
-                      onChange={(event) => updateMedia(index, "url", event.target.value)}
-                    />
-                  </label>
-                  <label className={`${labelClass} sm:col-span-2`}>
-                    Poster URL or local path
-                    <input
-                      className={inputClass}
-                      value={item.posterUrl ?? ""}
-                      onChange={(event) => updateMedia(index, "posterUrl", event.target.value)}
-                    />
-                  </label>
-                  <label className={`${labelClass} sm:col-span-2`}>
-                    Alt text
-                    <input
-                      className={inputClass}
-                      maxLength={500}
-                      value={item.alt}
-                      onChange={(event) => updateMedia(index, "alt", event.target.value)}
-                    />
-                  </label>
-                  <label className={labelClass}>
-                    Width
-                    <input
-                      className={inputClass}
-                      type="number"
-                      min={1}
-                      max={12000}
-                      value={item.width}
-                      onChange={(event) => updateMedia(index, "width", event.target.value)}
-                    />
-                  </label>
-                  <label className={labelClass}>
-                    Height
-                    <input
-                      className={inputClass}
-                      type="number"
-                      min={1}
-                      max={12000}
-                      value={item.height}
-                      onChange={(event) => updateMedia(index, "height", event.target.value)}
-                    />
-                  </label>
+                      Remove
+                    </button>
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <label className={labelClass}>
+                      Type
+                      <select
+                        className={inputClass}
+                        value={item.type}
+                        onChange={(event) => updateMedia(index, "type", event.target.value)}
+                      >
+                        <option value="image">Image</option>
+                        <option value="video">Video</option>
+                      </select>
+                    </label>
+                    <label className={`${labelClass} sm:col-span-2`}>
+                      Media URL or local path
+                      <input
+                        className={inputClass}
+                        required
+                        value={item.url}
+                        placeholder="https://… or /media/image.jpg"
+                        onChange={(event) => updateMedia(index, "url", event.target.value)}
+                      />
+                    </label>
+                    {item.type === "video" ? (
+                      <label className={`${labelClass} sm:col-span-2`}>
+                        Poster URL or local path
+                        <input
+                          className={inputClass}
+                          value={item.posterUrl ?? ""}
+                          placeholder="Recommended for video covers"
+                          onChange={(event) => updateMedia(index, "posterUrl", event.target.value)}
+                        />
+                      </label>
+                    ) : null}
+                    <label className={`${labelClass} sm:col-span-2`}>
+                      Alt text
+                      <input
+                        className={inputClass}
+                        maxLength={500}
+                        value={item.alt}
+                        placeholder="Describe the image for accessibility"
+                        onChange={(event) => updateMedia(index, "alt", event.target.value)}
+                      />
+                    </label>
+                    <label className={labelClass}>
+                      Width
+                      <input
+                        className={inputClass}
+                        type="number"
+                        min={1}
+                        max={12000}
+                        value={item.width}
+                        onChange={(event) => updateMedia(index, "width", event.target.value)}
+                      />
+                    </label>
+                    <label className={labelClass}>
+                      Height
+                      <input
+                        className={inputClass}
+                        type="number"
+                        min={1}
+                        max={12000}
+                        value={item.height}
+                        onChange={(event) => updateMedia(index, "height", event.target.value)}
+                      />
+                    </label>
+                  </div>
                 </div>
-              </div>
+              </article>
             ))}
           </div>
         </section>
