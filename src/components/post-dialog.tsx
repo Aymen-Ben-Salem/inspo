@@ -17,6 +17,12 @@ gsap.registerPlugin(useGSAP);
 
 export type PostDialogCloseMode = "back" | "home";
 
+const POST_MOTION_DURATION = 0.54;
+const SIDEBAR_MOTION_DURATION = 0.44;
+const SIDEBAR_ENTRANCE_DELAY = 0.1;
+const POST_EXIT_DELAY = 0.1;
+const EXIT_DURATION = POST_EXIT_DELAY + POST_MOTION_DURATION;
+
 const PostDialogCloseContext = createContext<(() => void) | undefined>(undefined);
 
 export function usePostDialogClose() {
@@ -101,11 +107,15 @@ export function PostDialog({
     timeline.to(
       backdrop,
       { autoAlpha: 0, duration: 0.24, ease: "power2.in" },
-      0.28,
+      EXIT_DURATION - 0.24,
     );
     timeline.to(
       sidebar,
-      { xPercent: 100, duration: 0.52, ease: "power3.inOut" },
+      {
+        xPercent: 100,
+        duration: SIDEBAR_MOTION_DURATION,
+        ease: "power3.inOut",
+      },
       0,
     );
 
@@ -118,18 +128,23 @@ export function PostDialog({
           scaleX: sourceRect.width / finalHeroRect.width,
           scaleY: sourceRect.height / finalHeroRect.height,
           transformOrigin: "top left",
-          duration: 0.52,
+          duration: POST_MOTION_DURATION,
           ease: "power3.inOut",
         },
-        0,
+        POST_EXIT_DELAY,
       );
       return;
     }
 
     timeline.to(
       hero,
-      { autoAlpha: 0, scale: 0.96, duration: 0.4, ease: "power2.in" },
-      0,
+      {
+        autoAlpha: 0,
+        scale: 0.96,
+        duration: POST_MOTION_DURATION,
+        ease: "power2.in",
+      },
+      POST_EXIT_DELAY,
     );
   }, [finishClose]);
 
@@ -185,9 +200,7 @@ export function PostDialog({
           return true;
         }
 
-        const timeline = gsap.timeline({
-          defaults: { duration: 0.52, ease: "back.out(1.08)" },
-        });
+        const timeline = gsap.timeline();
 
         entrance.current = timeline;
         gsap.set(backdrop, { autoAlpha: 0 });
@@ -200,8 +213,13 @@ export function PostDialog({
         );
         timeline.to(
           sidebar,
-          { xPercent: 0, clearProps: "transform,willChange" },
-          0,
+          {
+            xPercent: 0,
+            duration: SIDEBAR_MOTION_DURATION,
+            ease: "back.out(1.08)",
+            clearProps: "transform,willChange",
+          },
+          SIDEBAR_ENTRANCE_DELAY,
         );
 
         if (sourceRect && isVisible(sourceRect) && targetRect.width > 0) {
@@ -220,6 +238,8 @@ export function PostDialog({
               y: 0,
               scaleX: 1,
               scaleY: 1,
+              duration: POST_MOTION_DURATION,
+              ease: "back.out(1.08)",
               clearProps: "transform,transformOrigin,willChange",
             },
             0,
@@ -233,6 +253,8 @@ export function PostDialog({
           {
             autoAlpha: 1,
             scale: 1,
+            duration: POST_MOTION_DURATION,
+            ease: "back.out(1.08)",
             clearProps: "transform,opacity,visibility",
           },
           0,
