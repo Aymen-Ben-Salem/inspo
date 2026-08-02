@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 
 import { PostDetail } from "@/components/post-detail";
-import { PostDialog } from "@/components/post-dialog";
 import { getPostBySlug, getPosts } from "@/data/posts-repository";
 
 type PostModalPageProps = {
@@ -20,13 +19,11 @@ export default async function PostModalPage({ params }: PostModalPageProps) {
   const nextPost = posts[(currentIndex + 1) % posts.length] ?? post;
 
   return (
-    <PostDialog closeMode="back" postId={post.id}>
-      <PostDetail
-        post={post}
-        previousPost={previousPost}
-        nextPost={nextPost}
-        closeMode="back"
-      />
-    </PostDialog>
+    <PostDetail
+      post={post}
+      previousPost={previousPost}
+      nextPost={nextPost}
+      closeMode="back"
+    />
   );
 }

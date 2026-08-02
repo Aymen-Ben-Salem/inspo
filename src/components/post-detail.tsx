@@ -18,7 +18,10 @@ export function PostDetail({
   closeMode: PostDialogCloseMode;
 }) {
   return (
-    <main className="pointer-events-auto flex h-[100dvh] w-full max-w-full flex-col overflow-y-auto bg-transparent lg:flex-row lg:overflow-hidden">
+    <main
+      data-post-dialog-post-id={post.id}
+      className="pointer-events-auto flex h-[100dvh] w-full max-w-full flex-col overflow-y-auto bg-transparent lg:flex-row lg:overflow-hidden"
+    >
       <PostGallery post={post} overlay />
       <PostMetadata
         post={post}

@@ -2,35 +2,12 @@
 
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
-import { type MouseEvent, type PropsWithChildren, useRef } from "react";
-
-import { stagePostTransition } from "./post-transition-state";
+import { type PropsWithChildren, useRef } from "react";
 
 gsap.registerPlugin(useGSAP);
 
 export function FeedMotion({ children }: PropsWithChildren) {
   const scope = useRef<HTMLDivElement>(null);
-
-  function handlePostClick(event: MouseEvent<HTMLDivElement>) {
-    if (
-      event.button !== 0 ||
-      event.metaKey ||
-      event.ctrlKey ||
-      event.shiftKey ||
-      event.altKey
-    ) {
-      return;
-    }
-
-    const target = event.target;
-    const postLink =
-      target instanceof Element
-        ? target.closest<HTMLElement>("[data-feed-post-id]")
-        : null;
-    const postId = postLink?.dataset.feedPostId;
-
-    if (postId) stagePostTransition(postId);
-  }
 
   useGSAP(
     () => {
@@ -53,9 +30,5 @@ export function FeedMotion({ children }: PropsWithChildren) {
     { scope },
   );
 
-  return (
-    <div ref={scope} onClickCapture={handlePostClick}>
-      {children}
-    </div>
-  );
+  return <div ref={scope}>{children}</div>;
 }
