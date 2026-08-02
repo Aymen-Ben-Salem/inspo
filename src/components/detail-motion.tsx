@@ -14,7 +14,9 @@ export function DetailMotion({
 
   useGSAP(
     () => {
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      if (overlay || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        return;
+      }
 
       gsap.fromTo(
         "[data-detail-media]",
@@ -22,7 +24,7 @@ export function DetailMotion({
         { autoAlpha: 1, scale: 1, duration: 0.65, ease: "power3.out", stagger: 0.08 },
       );
     },
-    { scope },
+    { scope, dependencies: [overlay] },
   );
 
   return (

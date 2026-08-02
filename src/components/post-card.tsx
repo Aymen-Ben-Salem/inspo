@@ -12,6 +12,7 @@ export function PostCard({ post }: { post: Post }) {
   return (
     <article data-feed-card className="mb-3 break-inside-avoid">
       <Link
+        data-feed-post-id={post.id}
         href={`/posts/${post.slug}` as Route}
         aria-label={`View post: ${post.title}`}
         className="focus-ring group relative block overflow-hidden rounded-[10px] bg-[#f3f3f3]"

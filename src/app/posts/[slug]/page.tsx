@@ -54,7 +54,7 @@ export default async function PostPage({ params }: PostPageProps) {
   return (
     <>
       <ArchiveView posts={posts} />
-      <PostDialog closeMode="home">
+      <PostDialog closeMode="home" postId={post.id}>
         <PostDetail
           post={post}
           previousPost={previousPost}

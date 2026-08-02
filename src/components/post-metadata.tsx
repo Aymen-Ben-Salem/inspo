@@ -71,6 +71,7 @@ export function PostMetadata({
   return (
     <aside
       data-post-dialog-surface={overlay ? "" : undefined}
+      data-post-dialog-sidebar={overlay ? "" : undefined}
       className={`flex w-full shrink-0 flex-col border-l border-[#e5e7eb] bg-white ${
         overlay
           ? "min-h-fit lg:h-[100dvh] lg:w-[clamp(300px,29.25vw,522px)]"

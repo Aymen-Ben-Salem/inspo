@@ -20,7 +20,7 @@ export default async function PostModalPage({ params }: PostModalPageProps) {
   const nextPost = posts[(currentIndex + 1) % posts.length] ?? post;
 
   return (
-    <PostDialog closeMode="back">
+    <PostDialog closeMode="back" postId={post.id}>
       <PostDetail
         post={post}
         previousPost={previousPost}
