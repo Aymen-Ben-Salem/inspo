@@ -19,11 +19,10 @@ export type PostDialogCloseMode = "back" | "home";
 
 const POST_ENTRANCE_DURATION = 0.54;
 const POST_EXIT_DURATION = 0.48;
-const SIDEBAR_ENTRANCE_DURATION = 0.38;
-const SIDEBAR_EXIT_DURATION = 0.24;
-const SIDEBAR_ENTRANCE_DELAY =
-  POST_ENTRANCE_DURATION - SIDEBAR_ENTRANCE_DURATION;
-const POST_EXIT_DELAY = SIDEBAR_EXIT_DURATION;
+const SIDEBAR_ENTRANCE_DURATION = POST_ENTRANCE_DURATION;
+const SIDEBAR_EXIT_DURATION = 0.32;
+const SIDEBAR_ENTRANCE_DELAY = 0;
+const POST_EXIT_DELAY = 0.08;
 const EXIT_DURATION = POST_EXIT_DELAY + POST_EXIT_DURATION;
 
 const PostDialogCloseContext = createContext<(() => void) | undefined>(undefined);
@@ -152,7 +151,7 @@ export function PostDialog({
       {
         xPercent: 100,
         duration: SIDEBAR_EXIT_DURATION,
-        ease: "power3.in",
+        ease: "power3.out",
       },
       0,
     );
