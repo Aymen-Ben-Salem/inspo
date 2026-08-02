@@ -34,6 +34,7 @@ const optionalRemoteUrl = z
 
 const optionalAssetUrl = z
   .union([z.literal(""), localOrRemoteUrl])
+  .optional()
   .transform((value) => value || undefined);
 
 const mediaSchema = z
@@ -110,5 +111,15 @@ export function parseAdminPostForm(formData: FormData): AdminPostInput {
 }
 
 export function formatValidationError(error: z.ZodError) {
-  return error.issues[0]?.message ?? "Check the form and try again.";
+  const issue = error.issues[0];
+  if (!issue) return "Check the form and try again.";
+
+  const [section, itemIndex, field] = issue.path;
+  if (section === "media" && typeof itemIndex === "number") {
+    const fieldLabel = typeof field === "string" ? ` ${field}` : "";
+    return `Media ${itemIndex + 1}${fieldLabel}: ${issue.message}`;
+  }
+
+  const fieldLabel = issue.path.length > 0 ? `${issue.path.join(".")}: ` : "";
+  return `${fieldLabel}${issue.message}`;
 }

@@ -77,6 +77,32 @@ describe("admin post validation", () => {
     });
   });
 
+  it("accepts an uploaded image without a video poster field", () => {
+    const form = validForm();
+    form.set(
+      "media",
+      JSON.stringify([
+        {
+          type: "image",
+          url: "https://res.cloudinary.com/demo/image/upload/example.avif",
+          storageProvider: "cloudinary",
+          storageKey: "inspora/posts/example",
+          alt: "Example artwork",
+          width: 1200,
+          height: 900,
+        },
+      ]),
+    );
+
+    const media = parseAdminPostForm(form).media[0];
+
+    expect(media).toMatchObject({
+      type: "image",
+      storageProvider: "cloudinary",
+    });
+    expect(media?.posterUrl).toBeUndefined();
+  });
+
   it("rejects incomplete managed-media ownership metadata", () => {
     const form = validForm();
     form.set(
