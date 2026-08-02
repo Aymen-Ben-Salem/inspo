@@ -11,14 +11,69 @@ function getMediaElement(element: HTMLElement | undefined) {
   );
 }
 
-function getMediaSource(element: HTMLElement | undefined) {
-  const media = getMediaElement(element);
+function getImageSource(media: HTMLImageElement) {
+  return media.currentSrc || media.src;
+}
 
-  if (media instanceof HTMLImageElement) {
-    return media.currentSrc || media.src;
+function getVideoSource(video: HTMLVideoElement) {
+  return video.currentSrc || video.src;
+}
+
+function configureProxyMedia(
+  proxyMedia: HTMLImageElement | HTMLVideoElement,
+  sourceMedia: HTMLImageElement | HTMLVideoElement,
+) {
+  Object.assign(proxyMedia.style, {
+    display: "block",
+    height: "100%",
+    objectFit: "cover",
+    objectPosition: getComputedStyle(sourceMedia).objectPosition,
+    width: "100%",
+  });
+
+  proxyMedia.draggable = false;
+
+  if (proxyMedia instanceof HTMLImageElement) {
+    proxyMedia.alt = "";
+    proxyMedia.decoding = "async";
+  }
+}
+
+function createVideoProxy(source: HTMLVideoElement) {
+  const src = getVideoSource(source);
+
+  if (!src) return undefined;
+
+  const video = document.createElement("video");
+  const syncPlayback = () => {
+    if (Number.isFinite(source.currentTime)) {
+      try {
+        video.currentTime = source.currentTime;
+      } catch {
+        // Metadata may not be ready yet; playback still starts from the poster.
+      }
+    }
+
+    void video.play().catch(() => undefined);
+  };
+
+  video.autoplay = true;
+  video.controls = false;
+  video.defaultMuted = true;
+  video.loop = true;
+  video.muted = true;
+  video.playsInline = true;
+  video.preload = "auto";
+  video.poster = source.poster;
+  video.src = src;
+
+  if (video.readyState >= HTMLMediaElement.HAVE_METADATA) {
+    syncPlayback();
+  } else {
+    video.addEventListener("loadedmetadata", syncPlayback, { once: true });
   }
 
-  return media?.poster;
+  return video;
 }
 
 export function getCornerRadius(element: HTMLElement) {
@@ -39,19 +94,50 @@ export function createMediaProxy({
   media,
   rect,
   root,
+  videoPlaybackSource = "media",
 }: {
   fallback?: HTMLElement;
   media: HTMLElement;
   rect: DOMRect;
   root: HTMLElement;
+  videoPlaybackSource?: "fallback" | "media";
 }) {
-  const src = getMediaSource(media) || getMediaSource(fallback);
+  const primaryMedia = getMediaElement(media);
+  const fallbackMedia = getMediaElement(fallback);
+  const mediaElement = primaryMedia ?? fallbackMedia;
 
-  if (!src) return undefined;
+  if (!mediaElement) return undefined;
 
-  const mediaElement = getMediaElement(media) ?? getMediaElement(fallback);
+  const videoSource =
+    videoPlaybackSource === "fallback" &&
+    fallbackMedia instanceof HTMLVideoElement
+      ? fallbackMedia
+      : primaryMedia instanceof HTMLVideoElement
+        ? primaryMedia
+        : fallbackMedia instanceof HTMLVideoElement
+          ? fallbackMedia
+          : undefined;
+  const proxyMedia = videoSource
+    ? createVideoProxy(videoSource)
+    : mediaElement instanceof HTMLImageElement
+      ? document.createElement("img")
+      : undefined;
+
+  if (!proxyMedia) return undefined;
+
+  if (proxyMedia instanceof HTMLImageElement) {
+    const imageSource =
+      primaryMedia instanceof HTMLImageElement
+        ? primaryMedia
+        : fallbackMedia instanceof HTMLImageElement
+          ? fallbackMedia
+          : undefined;
+
+    if (!imageSource) return undefined;
+    proxyMedia.src = getImageSource(imageSource);
+  }
+
   const proxy = document.createElement("div");
-  const proxyImage = document.createElement("img");
 
   proxy.dataset.postDialogMediaProxy = "";
   Object.assign(proxy.style, {
@@ -68,21 +154,8 @@ export function createMediaProxy({
     zIndex: "3",
   });
 
-  proxyImage.alt = "";
-  proxyImage.decoding = "async";
-  proxyImage.draggable = false;
-  proxyImage.src = src;
-  Object.assign(proxyImage.style, {
-    display: "block",
-    height: "100%",
-    objectFit: "cover",
-    objectPosition: mediaElement
-      ? getComputedStyle(mediaElement).objectPosition
-      : "50% 50%",
-    width: "100%",
-  });
-
-  proxy.appendChild(proxyImage);
+  configureProxyMedia(proxyMedia, videoSource ?? mediaElement);
+  proxy.appendChild(proxyMedia);
   root.appendChild(proxy);
 
   return proxy;

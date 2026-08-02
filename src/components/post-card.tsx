@@ -4,6 +4,8 @@ import type { Route } from "next";
 
 import { isGifUrl, type Post } from "@/domain/post";
 
+import { LoopingVideo } from "./looping-video";
+
 export function PostCard({ post }: { post: Post }) {
   const cover = post.media[0];
 
@@ -18,14 +20,26 @@ export function PostCard({ post }: { post: Post }) {
         className="focus-ring group relative block overflow-hidden rounded-[20px] bg-[#f3f3f3]"
         style={{ aspectRatio: `${cover.width}/${cover.height}` }}
       >
-        <Image
-          src={cover.posterUrl ?? cover.url}
-          alt={cover.alt}
-          fill
-          unoptimized={isGifUrl(cover.posterUrl ?? cover.url)}
-          sizes="(min-width: 1680px) 270px, (min-width: 1440px) 20vw, (min-width: 1120px) 25vw, (min-width: 760px) 33vw, (min-width: 460px) 50vw, 100vw"
-          className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
-        />
+        {cover.type === "video" ? (
+          <LoopingVideo
+            data-feed-transition-media
+            src={cover.url}
+            poster={cover.posterUrl}
+            aria-label={cover.alt}
+            draggable={false}
+            className="absolute inset-0 size-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+          />
+        ) : (
+          <Image
+            data-feed-transition-media
+            src={cover.url}
+            alt={cover.alt}
+            fill
+            unoptimized={isGifUrl(cover.url)}
+            sizes="(min-width: 1680px) 270px, (min-width: 1440px) 20vw, (min-width: 1120px) 25vw, (min-width: 760px) 33vw, (min-width: 460px) 50vw, 100vw"
+            className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+          />
+        )}
         <span className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/0 to-black/0 opacity-40 transition-opacity duration-300 group-hover:opacity-100" />
         <span className="absolute inset-x-3 bottom-3 z-10 flex items-end gap-2">
           <Image

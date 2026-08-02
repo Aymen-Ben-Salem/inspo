@@ -3,6 +3,7 @@ import Image from "next/image";
 import { isGifUrl, type Post } from "@/domain/post";
 
 import { DetailMotion } from "./detail-motion";
+import { LoopingVideo } from "./looping-video";
 
 export function PostGallery({ post, overlay = false }: { post: Post; overlay?: boolean }) {
   return (
@@ -20,20 +21,18 @@ export function PostGallery({ post, overlay = false }: { post: Post; overlay?: b
             className="flex h-full min-w-full snap-center items-center justify-center px-4 py-10 lg:py-0"
           >
             {media.type === "video" ? (
-              <video
+              <LoopingVideo
                 data-post-dialog-surface={overlay ? "" : undefined}
                 data-post-dialog-hero={overlay && media.position === 0 ? "" : undefined}
                 src={media.url}
                 poster={media.posterUrl}
-                controls
-                playsInline
-                preload="metadata"
+                aria-label={media.alt}
+                draggable={false}
+                eager
                 className={`h-auto max-w-full rounded-[10px] object-cover lg:w-auto ${mediaSize} ${
                   overlay ? "shadow-[0_18px_60px_rgba(0,0,0,0.12)]" : ""
                 }`}
-              >
-                <track kind="captions" />
-              </video>
+              />
             ) : (
               <Image
                 data-post-dialog-surface={overlay ? "" : undefined}

@@ -343,6 +343,7 @@ export function PostDialog({
             media: hero,
             rect: targetRect,
             root,
+            videoPlaybackSource: "fallback",
           });
 
           if (proxy) {
