@@ -17,11 +17,14 @@ gsap.registerPlugin(useGSAP);
 
 export type PostDialogCloseMode = "back" | "home";
 
-const POST_MOTION_DURATION = 0.54;
-const SIDEBAR_MOTION_DURATION = 0.44;
-const SIDEBAR_ENTRANCE_DELAY = 0.1;
-const POST_EXIT_DELAY = 0.1;
-const EXIT_DURATION = POST_EXIT_DELAY + POST_MOTION_DURATION;
+const POST_ENTRANCE_DURATION = 0.54;
+const POST_EXIT_DURATION = 0.48;
+const SIDEBAR_ENTRANCE_DURATION = 0.38;
+const SIDEBAR_EXIT_DURATION = 0.24;
+const SIDEBAR_ENTRANCE_DELAY =
+  POST_ENTRANCE_DURATION - SIDEBAR_ENTRANCE_DURATION;
+const POST_EXIT_DELAY = SIDEBAR_EXIT_DURATION;
+const EXIT_DURATION = POST_EXIT_DELAY + POST_EXIT_DURATION;
 
 const PostDialogCloseContext = createContext<(() => void) | undefined>(undefined);
 
@@ -45,6 +48,32 @@ function isVisible(rect: DOMRect | undefined) {
       rect.top < window.innerHeight &&
       rect.left < window.innerWidth,
   );
+}
+
+function getOtherGalleryItems(gallery: HTMLElement, hero: HTMLElement) {
+  return Array.from(
+    gallery.querySelectorAll<HTMLElement>("[data-detail-media]"),
+  ).filter((item) => !item.contains(hero));
+}
+
+function prepareGalleryForTransition(
+  gallery: HTMLElement,
+  hero: HTMLElement,
+) {
+  gsap.set(gallery, {
+    overflow: "visible",
+    position: "relative",
+    zIndex: 2,
+  });
+  gsap.set(getOtherGalleryItems(gallery, hero), { visibility: "hidden" });
+}
+
+function restoreGalleryAfterTransition(
+  gallery: HTMLElement,
+  hero: HTMLElement,
+) {
+  gsap.set(gallery, { clearProps: "overflow,position,zIndex" });
+  gsap.set(getOtherGalleryItems(gallery, hero), { clearProps: "visibility" });
 }
 
 export function PostDialog({
@@ -81,6 +110,7 @@ export function PostDialog({
     entrance.current?.kill();
 
     const backdrop = root.querySelector<HTMLElement>("[data-post-dialog-backdrop]");
+    const gallery = root.querySelector<HTMLElement>("[data-post-dialog-gallery]");
     const sidebar = root.querySelector<HTMLElement>("[data-post-dialog-sidebar]");
     const hero = root.querySelector<HTMLElement>("[data-post-dialog-hero]");
     const postId = root.querySelector<HTMLElement>("[data-post-dialog-post-id]")
@@ -95,12 +125,20 @@ export function PostDialog({
       "(prefers-reduced-motion: reduce)",
     ).matches;
 
-    if (reducedMotion || !backdrop || !sidebar || !hero || !finalHeroRect) {
+    if (
+      reducedMotion ||
+      !backdrop ||
+      !gallery ||
+      !sidebar ||
+      !hero ||
+      !finalHeroRect
+    ) {
       finishClose();
       return;
     }
 
     gsap.set(root, { pointerEvents: "none" });
+    prepareGalleryForTransition(gallery, hero);
 
     const timeline = gsap.timeline({ onComplete: finishClose });
 
@@ -113,8 +151,8 @@ export function PostDialog({
       sidebar,
       {
         xPercent: 100,
-        duration: SIDEBAR_MOTION_DURATION,
-        ease: "power3.inOut",
+        duration: SIDEBAR_EXIT_DURATION,
+        ease: "power3.in",
       },
       0,
     );
@@ -128,7 +166,7 @@ export function PostDialog({
           scaleX: sourceRect.width / finalHeroRect.width,
           scaleY: sourceRect.height / finalHeroRect.height,
           transformOrigin: "top left",
-          duration: POST_MOTION_DURATION,
+          duration: POST_EXIT_DURATION,
           ease: "power3.inOut",
         },
         POST_EXIT_DELAY,
@@ -141,7 +179,7 @@ export function PostDialog({
       {
         autoAlpha: 0,
         scale: 0.96,
-        duration: POST_MOTION_DURATION,
+        duration: POST_EXIT_DURATION,
         ease: "power2.in",
       },
       POST_EXIT_DELAY,
@@ -176,6 +214,9 @@ export function PostDialog({
         const backdrop = root.querySelector<HTMLElement>(
           "[data-post-dialog-backdrop]",
         );
+        const gallery = root.querySelector<HTMLElement>(
+          "[data-post-dialog-gallery]",
+        );
         const sidebar = root.querySelector<HTMLElement>(
           "[data-post-dialog-sidebar]",
         );
@@ -184,7 +225,7 @@ export function PostDialog({
           "[data-post-dialog-post-id]",
         )?.dataset.postDialogPostId;
 
-        if (!backdrop || !sidebar || !hero || !postId) return false;
+        if (!backdrop || !gallery || !sidebar || !hero || !postId) return false;
 
         const targetRect = hero.getBoundingClientRect();
         const sourceRect = findFeedPost(postId)?.getBoundingClientRect();
@@ -196,13 +237,16 @@ export function PostDialog({
         entranceHeroRect.current = targetRect;
 
         if (reducedMotion) {
-          gsap.set([backdrop, sidebar, hero], { clearProps: "all" });
+          gsap.set([backdrop, gallery, sidebar, hero], { clearProps: "all" });
           return true;
         }
 
-        const timeline = gsap.timeline();
+        const timeline = gsap.timeline({
+          onComplete: () => restoreGalleryAfterTransition(gallery, hero),
+        });
 
         entrance.current = timeline;
+        prepareGalleryForTransition(gallery, hero);
         gsap.set(backdrop, { autoAlpha: 0 });
         gsap.set(sidebar, { xPercent: 100, willChange: "transform" });
 
@@ -215,7 +259,7 @@ export function PostDialog({
           sidebar,
           {
             xPercent: 0,
-            duration: SIDEBAR_MOTION_DURATION,
+            duration: SIDEBAR_ENTRANCE_DURATION,
             ease: "back.out(1.08)",
             clearProps: "transform,willChange",
           },
@@ -238,7 +282,7 @@ export function PostDialog({
               y: 0,
               scaleX: 1,
               scaleY: 1,
-              duration: POST_MOTION_DURATION,
+              duration: POST_ENTRANCE_DURATION,
               ease: "back.out(1.08)",
               clearProps: "transform,transformOrigin,willChange",
             },
@@ -253,7 +297,7 @@ export function PostDialog({
           {
             autoAlpha: 1,
             scale: 1,
-            duration: POST_MOTION_DURATION,
+            duration: POST_ENTRANCE_DURATION,
             ease: "back.out(1.08)",
             clearProps: "transform,opacity,visibility",
           },
