@@ -13,6 +13,12 @@ import {
   useRef,
 } from "react";
 
+import {
+  createMediaProxy,
+  getCompensatedRadius,
+  getCornerRadius,
+} from "./post-dialog-media-proxy";
+
 gsap.registerPlugin(useGSAP);
 
 export type PostDialogCloseMode = "back" | "home";
@@ -84,6 +90,7 @@ export function PostDialog({
   const entrance = useRef<gsap.core.Timeline>(null);
   const entranceHero = useRef<HTMLElement>(null);
   const entranceHeroRect = useRef<DOMRect>(null);
+  const entranceProxy = useRef<HTMLDivElement>(null);
   const closing = useRef(false);
 
   const finishClose = useCallback(() => {
@@ -107,6 +114,13 @@ export function PostDialog({
 
     closing.current = true;
     entrance.current?.kill();
+    entrance.current = null;
+    entranceProxy.current?.remove();
+    entranceProxy.current = null;
+
+    if (entranceHero.current) {
+      gsap.set(entranceHero.current, { clearProps: "opacity,visibility" });
+    }
 
     const backdrop = root.querySelector<HTMLElement>("[data-post-dialog-backdrop]");
     const gallery = root.querySelector<HTMLElement>("[data-post-dialog-gallery]");
@@ -156,7 +170,50 @@ export function PostDialog({
       0,
     );
 
-    if (sourceRect && isVisible(sourceRect) && finalHeroRect.width > 0) {
+    if (
+      source &&
+      sourceRect &&
+      isVisible(sourceRect) &&
+      finalHeroRect.width > 0
+    ) {
+      const proxy = createMediaProxy({
+        fallback: source,
+        media: hero,
+        rect: finalHeroRect,
+        root,
+      });
+
+      if (proxy) {
+        const scaleX = sourceRect.width / finalHeroRect.width;
+        const scaleY = sourceRect.height / finalHeroRect.height;
+        const sourceRadius = getCornerRadius(source);
+
+        gsap.set(proxy, {
+          borderRadius: getCornerRadius(hero),
+          boxShadow: getComputedStyle(hero).boxShadow,
+        });
+        gsap.set(hero, { autoAlpha: 0 });
+        timeline.to(
+          proxy,
+          {
+            x: sourceRect.left - finalHeroRect.left,
+            y: sourceRect.top - finalHeroRect.top,
+            scaleX,
+            scaleY,
+            borderRadius: getCompensatedRadius(
+              sourceRadius,
+              scaleX,
+              scaleY,
+            ),
+            boxShadow: "0 0 0 rgba(0, 0, 0, 0)",
+            duration: POST_EXIT_DURATION,
+            ease: "power3.inOut",
+          },
+          POST_EXIT_DELAY,
+        );
+        return;
+      }
+
       timeline.to(
         hero,
         {
@@ -227,7 +284,8 @@ export function PostDialog({
         if (!backdrop || !gallery || !sidebar || !hero || !postId) return false;
 
         const targetRect = hero.getBoundingClientRect();
-        const sourceRect = findFeedPost(postId)?.getBoundingClientRect();
+        const source = findFeedPost(postId);
+        const sourceRect = source?.getBoundingClientRect();
         const reducedMotion = window.matchMedia(
           "(prefers-reduced-motion: reduce)",
         ).matches;
@@ -240,8 +298,17 @@ export function PostDialog({
           return true;
         }
 
+        let proxy: HTMLDivElement | undefined;
         const timeline = gsap.timeline({
-          onComplete: () => restoreGalleryAfterTransition(gallery, hero),
+          onComplete: () => {
+            if (proxy) {
+              gsap.set(hero, { clearProps: "opacity,visibility" });
+              proxy.remove();
+              entranceProxy.current = null;
+            }
+
+            restoreGalleryAfterTransition(gallery, hero);
+          },
         });
 
         entrance.current = timeline;
@@ -265,7 +332,49 @@ export function PostDialog({
           SIDEBAR_ENTRANCE_DELAY,
         );
 
-        if (sourceRect && isVisible(sourceRect) && targetRect.width > 0) {
+        if (
+          source &&
+          sourceRect &&
+          isVisible(sourceRect) &&
+          targetRect.width > 0
+        ) {
+          proxy = createMediaProxy({
+            fallback: source,
+            media: hero,
+            rect: sourceRect,
+            root,
+          });
+
+          if (proxy) {
+            const scaleX = targetRect.width / sourceRect.width;
+            const scaleY = targetRect.height / sourceRect.height;
+            const targetRadius = getCornerRadius(hero);
+            const averageScale = (scaleX + scaleY) / 2;
+
+            entranceProxy.current = proxy;
+            gsap.set(proxy, { borderRadius: getCornerRadius(source) });
+            gsap.set(hero, { autoAlpha: 0 });
+            timeline.to(
+              proxy,
+              {
+                x: targetRect.left - sourceRect.left,
+                y: targetRect.top - sourceRect.top,
+                scaleX,
+                scaleY,
+                borderRadius: getCompensatedRadius(
+                  targetRadius,
+                  scaleX,
+                  scaleY,
+                ),
+                boxShadow: `0 ${18 / averageScale}px ${60 / averageScale}px rgba(0, 0, 0, 0.12)`,
+                duration: POST_ENTRANCE_DURATION,
+                ease: "back.out(1.08)",
+              },
+              0,
+            );
+            return true;
+          }
+
           gsap.set(hero, {
             x: sourceRect.left - targetRect.left,
             y: sourceRect.top - targetRect.top,
@@ -312,7 +421,11 @@ export function PostDialog({
         observer.observe(root, { childList: true, subtree: true });
       }
 
-      return () => observer?.disconnect();
+      return () => {
+        observer?.disconnect();
+        entranceProxy.current?.remove();
+        entranceProxy.current = null;
+      };
     },
     { scope },
   );
