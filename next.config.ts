@@ -7,7 +7,9 @@ const remoteImageHostnames = [
 ].filter((hostname): hostname is string => Boolean(hostname));
 
 const nextConfig: NextConfig = {
+  cacheComponents: true,
   images: {
+    minimumCacheTTL: 60 * 60 * 24 * 31,
     remotePatterns: remoteImageHostnames.map((hostname) => ({ protocol: "https", hostname })),
   },
   typedRoutes: true,

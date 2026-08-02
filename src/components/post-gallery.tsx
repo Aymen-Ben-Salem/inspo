@@ -1,6 +1,11 @@
 import Image from "next/image";
 
 import { isGifUrl, type Post } from "@/domain/post";
+import {
+  optimizeCloudinaryAnimatedImageUrl,
+  optimizeCloudinaryPosterUrl,
+  optimizeCloudinaryVideoUrl,
+} from "@/storage/cloudinary-delivery";
 
 import { DetailMotion } from "./detail-motion";
 import { LoopingVideo } from "./looping-video";
@@ -14,6 +19,16 @@ export function PostGallery({ post, overlay = false }: { post: Post; overlay?: b
         const aspectRatio = media.width / media.height;
         const maxViewportWidth = maxViewportHeight * aspectRatio;
         const isAnimated = media.type === "video" || isGifUrl(media.url);
+        const isManagedMedia = media.storageProvider === "cloudinary";
+        const mediaUrl =
+          isManagedMedia && media.type === "video"
+            ? optimizeCloudinaryVideoUrl(media.url)
+            : isManagedMedia && isAnimated
+              ? optimizeCloudinaryAnimatedImageUrl(media.url)
+              : media.url;
+        const posterUrl = isManagedMedia && media.posterUrl
+          ? optimizeCloudinaryPosterUrl(media.posterUrl)
+          : media.posterUrl;
 
         return (
           <figure
@@ -36,8 +51,8 @@ export function PostGallery({ post, overlay = false }: { post: Post; overlay?: b
             >
               {media.type === "video" ? (
                 <LoopingVideo
-                  src={media.url}
-                  poster={media.posterUrl}
+                  src={mediaUrl}
+                  poster={posterUrl}
                   aria-label={media.alt}
                   draggable={false}
                   eager
@@ -47,7 +62,7 @@ export function PostGallery({ post, overlay = false }: { post: Post; overlay?: b
                 />
               ) : (
                 <Image
-                  src={media.url}
+                  src={mediaUrl}
                   alt={media.alt}
                   fill
                   unoptimized={isGifUrl(media.url)}

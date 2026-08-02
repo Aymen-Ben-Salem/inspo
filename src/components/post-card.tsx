@@ -3,6 +3,11 @@ import Link from "next/link";
 import type { Route } from "next";
 
 import { isGifUrl, type Post } from "@/domain/post";
+import {
+  optimizeCloudinaryAnimatedImageUrl,
+  optimizeCloudinaryPosterUrl,
+  optimizeCloudinaryVideoUrl,
+} from "@/storage/cloudinary-delivery";
 
 import { LoopingVideo } from "./looping-video";
 
@@ -10,6 +15,18 @@ export function PostCard({ post }: { post: Post }) {
   const cover = post.media[0];
 
   if (!cover) return null;
+
+  const isAnimatedImage = cover.type === "image" && isGifUrl(cover.url);
+  const isManagedMedia = cover.storageProvider === "cloudinary";
+  const mediaUrl =
+    isManagedMedia && cover.type === "video"
+      ? optimizeCloudinaryVideoUrl(cover.url)
+      : isManagedMedia && isAnimatedImage
+        ? optimizeCloudinaryAnimatedImageUrl(cover.url)
+        : cover.url;
+  const posterUrl = isManagedMedia && cover.posterUrl
+    ? optimizeCloudinaryPosterUrl(cover.posterUrl)
+    : cover.posterUrl;
 
   return (
     <article data-feed-card className="mb-3 break-inside-avoid">
@@ -23,8 +40,8 @@ export function PostCard({ post }: { post: Post }) {
         {cover.type === "video" ? (
           <LoopingVideo
             data-feed-transition-media
-            src={cover.url}
-            poster={cover.posterUrl}
+            src={mediaUrl}
+            poster={posterUrl}
             aria-label={cover.alt}
             draggable={false}
             className="absolute inset-0 size-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
@@ -32,10 +49,10 @@ export function PostCard({ post }: { post: Post }) {
         ) : (
           <Image
             data-feed-transition-media
-            src={cover.url}
+            src={mediaUrl}
             alt={cover.alt}
             fill
-            unoptimized={isGifUrl(cover.url)}
+            unoptimized={isAnimatedImage}
             sizes="(min-width: 1120px) 395px, (min-width: 760px) 33vw, (min-width: 460px) 50vw, 100vw"
             className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
           />

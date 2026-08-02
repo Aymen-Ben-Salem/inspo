@@ -1,11 +1,12 @@
 "use server";
 
 import type { Route } from "next";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { requireAdmin } from "@/auth/require-admin";
+import { PUBLISHED_POSTS_CACHE_TAG } from "@/data/posts-repository";
 import { deleteManagedMediaAssetsSafely } from "@/storage/cloudinary";
 
 import { formatValidationError, parseAdminPostForm } from "./post-validation";
@@ -45,6 +46,7 @@ function postErrorState(error: unknown): AdminActionState {
 }
 
 function revalidatePostPaths(slug: string, previousSlug?: string) {
+  updateTag(PUBLISHED_POSTS_CACHE_TAG);
   revalidatePath("/");
   revalidatePath("/admin/posts");
   revalidatePath(`/posts/${slug}` as Route);

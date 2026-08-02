@@ -16,6 +16,7 @@ export type PostMedia = {
   type: MediaType;
   url: string;
   posterUrl?: string;
+  storageProvider?: "cloudinary";
   alt: string;
   width: number;
   height: number;

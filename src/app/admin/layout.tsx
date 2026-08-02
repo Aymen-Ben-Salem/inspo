@@ -10,8 +10,6 @@ import { getConfiguredAdminUserIds, isClerkConfigured } from "@/auth/config";
 import { requireAdmin } from "@/auth/require-admin";
 import { BrandMark } from "@/components/brand-mark";
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: "Admin",
   robots: { index: false, follow: false, nocache: true },

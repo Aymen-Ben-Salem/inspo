@@ -6,8 +6,6 @@ import { redirect } from "next/navigation";
 
 import { getConfiguredAdminUserIds, isClerkConfigured } from "@/auth/config";
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: "Admin access denied",
   robots: { index: false, follow: false, nocache: true },
