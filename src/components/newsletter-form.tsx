@@ -51,7 +51,7 @@ export function NewsletterForm({ compact = false }: { compact?: boolean }) {
 
   return (
     <form
-      className={`flex min-w-0 items-center gap-[10px] ${compact ? "w-[369px]" : "w-full max-w-[429px]"}`}
+      className={`flex min-w-0 items-center gap-2 min-[1700px]:gap-[10px] ${compact ? "w-full" : "w-full max-w-[429px]"}`}
       onSubmit={handleSubmit}
     >
       <label className="sr-only" htmlFor={compact ? "header-email" : "detail-email"}>
@@ -64,8 +64,8 @@ export function NewsletterForm({ compact = false }: { compact?: boolean }) {
         autoComplete="email"
         required
         placeholder="you@email.com"
-        className={`focus-ring h-[37px] min-w-0 flex-1 rounded-full border border-[#e6e6e6] bg-[#fafafa] text-[14px] tracking-[-0.002em] text-[#555] outline-none transition-colors placeholder:text-[#8b8b8b] focus:border-[#aaa] ${
-          compact ? "px-3" : "pl-4 pr-3"
+        className={`focus-ring h-9 min-w-0 flex-1 rounded-full border border-[#e6e6e6] bg-[#fafafa] text-[13px] tracking-[-0.002em] text-[#555] outline-none transition-colors placeholder:text-[#8b8b8b] focus:border-[#aaa] lg:h-[34px] xl:h-9 min-[1700px]:h-[37px] min-[1700px]:text-[14px] ${
+          compact ? "px-[11px] min-[1700px]:px-3" : "pl-[14px] pr-3 min-[1700px]:pl-4"
         }`}
       />
       <input
@@ -79,8 +79,8 @@ export function NewsletterForm({ compact = false }: { compact?: boolean }) {
       <button
         type="submit"
         disabled={status === "pending"}
-        className={`focus-ring h-[37px] shrink-0 rounded-full bg-[#262626] text-[14px] tracking-[-0.002em] text-white transition-colors hover:bg-black disabled:cursor-wait disabled:opacity-60 ${
-          compact ? "px-3" : "px-[14px]"
+        className={`focus-ring h-9 shrink-0 rounded-full bg-[#262626] text-[13px] tracking-[-0.002em] text-white transition-colors hover:bg-black disabled:cursor-wait disabled:opacity-60 lg:h-[34px] xl:h-9 min-[1700px]:h-[37px] min-[1700px]:text-[14px] ${
+          compact ? "px-[11px] min-[1700px]:px-3" : "px-3 min-[1700px]:px-[14px]"
         }`}
       >
         {status === "pending" ? "joining..." : "subscribe"}

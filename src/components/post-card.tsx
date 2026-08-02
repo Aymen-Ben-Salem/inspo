@@ -41,25 +41,25 @@ export function PostCard({ post }: { post: Post }) {
           />
         )}
         <span className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/0 to-black/0 opacity-40 transition-opacity duration-300 group-hover:opacity-100" />
-        <span className="absolute inset-x-3 bottom-3 z-10 flex items-end gap-2">
+        <span className="absolute inset-x-[10px] bottom-[10px] z-10 flex items-end gap-[7px] min-[1800px]:inset-x-3 min-[1800px]:bottom-3 min-[1800px]:gap-2">
           <Image
             src={post.creatorAvatarUrl}
             alt=""
             width={35}
             height={35}
-            className="size-[35px] shrink-0 rounded-full border border-[#e6e6e6] object-cover"
+            className="size-7 shrink-0 rounded-full border border-[#e6e6e6] object-cover xl:size-[30px] min-[1800px]:size-[35px]"
           />
           <span className="min-w-0 translate-y-1 opacity-0 transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100">
-            <span className="block truncate text-[13px] font-medium leading-tight text-white">
+            <span className="block truncate text-[12px] font-medium leading-tight text-white min-[1800px]:text-[13px]">
               {post.title}
             </span>
-            <span className="block truncate text-[11px] leading-tight text-white/75">
+            <span className="block truncate text-[10px] leading-tight text-white/75 min-[1800px]:text-[11px]">
               {post.creatorName}
             </span>
           </span>
         </span>
         {post.media.length > 1 ? (
-          <span className="absolute right-3 top-3 z-10 flex size-7 items-center justify-center rounded-full bg-black/35 text-xs text-white shadow-sm backdrop-blur-md">
+          <span className="absolute right-[10px] top-[10px] z-10 flex size-6 items-center justify-center rounded-full bg-black/35 text-[10px] text-white shadow-sm backdrop-blur-md xl:size-[26px] xl:text-[11px] min-[1800px]:right-3 min-[1800px]:top-3 min-[1800px]:size-7 min-[1800px]:text-xs">
             <span className="sr-only">{post.media.length} slides</span>
             <span aria-hidden="true">{post.media.length}</span>
           </span>

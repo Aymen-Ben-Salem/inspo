@@ -11,10 +11,10 @@ export function SiteHeader({ category }: { category?: PostCategory }) {
   return (
     <StickyHeader>
       <Link href="/" aria-label="n inspiration home" className="focus-ring rounded-lg">
-        <BrandMark priority />
+        <BrandMark priority responsive />
       </Link>
       <CategoryFilter current={category} />
-      <div className="hidden w-[369px] shrink-0 xl:block">
+      <div className="hidden w-[344px] shrink-0 xl:block 2xl:w-[356px] min-[1700px]:w-[369px]">
         <NewsletterForm compact />
       </div>
     </StickyHeader>
