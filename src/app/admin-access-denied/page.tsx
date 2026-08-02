@@ -5,13 +5,14 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { getConfiguredAdminUserIds, isClerkConfigured } from "@/auth/config";
+import { AuthProvider } from "@/components/auth-provider";
 
 export const metadata: Metadata = {
   title: "Admin access denied",
   robots: { index: false, follow: false, nocache: true },
 };
 
-export default async function AdminAccessDeniedPage() {
+async function AdminAccessDeniedContent() {
   if (!isClerkConfigured()) redirect("/admin" as Route);
 
   const { userId } = await auth();
@@ -47,5 +48,13 @@ export default async function AdminAccessDeniedPage() {
         </div>
       </section>
     </main>
+  );
+}
+
+export default function AdminAccessDeniedPage() {
+  return (
+    <AuthProvider>
+      <AdminAccessDeniedContent />
+    </AuthProvider>
   );
 }

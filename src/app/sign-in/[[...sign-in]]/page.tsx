@@ -1,6 +1,7 @@
 import { SignIn } from "@clerk/nextjs";
 
 import { isClerkConfigured } from "@/auth/config";
+import { AuthProvider } from "@/components/auth-provider";
 
 export default function SignInPage() {
   if (!isClerkConfigured()) {
@@ -20,8 +21,10 @@ export default function SignInPage() {
   }
 
   return (
-    <main className="flex min-h-[100dvh] items-center justify-center bg-[#f5f5f2] px-5 py-12">
-      <SignIn />
-    </main>
+    <AuthProvider>
+      <main className="flex min-h-[100dvh] items-center justify-center bg-[#f5f5f2] px-5 py-12">
+        <SignIn />
+      </main>
+    </AuthProvider>
   );
 }

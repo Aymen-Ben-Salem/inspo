@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import type { ReactNode } from "react";
 
-import { AuthProvider } from "@/components/auth-provider";
-
 import "./globals.css";
 
 const inter = localFont({
@@ -37,10 +35,8 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body className="font-[family-name:var(--font-inter)]">
-        <AuthProvider>
-          {children}
-          {modal}
-        </AuthProvider>
+        {children}
+        {modal}
       </body>
     </html>
   );

@@ -8,6 +8,7 @@ import type { ReactNode } from "react";
 
 import { getConfiguredAdminUserIds, isClerkConfigured } from "@/auth/config";
 import { requireAdmin } from "@/auth/require-admin";
+import { AuthProvider } from "@/components/auth-provider";
 import { BrandMark } from "@/components/brand-mark";
 
 export const metadata: Metadata = {
@@ -52,7 +53,7 @@ function AdminSetup({ userId }: { userId?: string }) {
   );
 }
 
-export default async function AdminLayout({ children }: { children: ReactNode }) {
+async function AdminContent({ children }: { children: ReactNode }) {
   if (!isClerkConfigured()) return <AdminSetup />;
 
   if (getConfiguredAdminUserIds().size === 0) {
@@ -106,5 +107,13 @@ export default async function AdminLayout({ children }: { children: ReactNode })
         {children}
       </main>
     </div>
+  );
+}
+
+export default function AdminLayout({ children }: { children: ReactNode }) {
+  return (
+    <AuthProvider>
+      <AdminContent>{children}</AdminContent>
+    </AuthProvider>
   );
 }
