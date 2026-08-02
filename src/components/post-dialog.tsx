@@ -350,28 +350,61 @@ export function PostDialog({
             const scaleY = targetRect.height / sourceRect.height;
             const targetRadius = getCornerRadius(hero);
             const averageScale = (scaleX + scaleY) / 2;
+            const emphasizeScale = hero.hasAttribute(
+              "data-post-dialog-emphasize-scale",
+            );
 
             entranceProxy.current = proxy;
             gsap.set(proxy, { borderRadius: getCornerRadius(source) });
             gsap.set(hero, { autoAlpha: 0 });
-            timeline.to(
-              proxy,
-              {
-                x: targetRect.left - sourceRect.left,
-                y: targetRect.top - sourceRect.top,
-                scaleX,
-                scaleY,
-                borderRadius: getCompensatedRadius(
-                  targetRadius,
+
+            if (emphasizeScale) {
+              timeline.to(
+                proxy,
+                {
+                  x: targetRect.left - sourceRect.left,
+                  y: targetRect.top - sourceRect.top,
+                  duration: POST_ENTRANCE_DURATION,
+                  ease: "power3.inOut",
+                },
+                0,
+              );
+              timeline.to(
+                proxy,
+                {
                   scaleX,
                   scaleY,
-                ),
-                boxShadow: `0 ${18 / averageScale}px ${60 / averageScale}px rgba(0, 0, 0, 0.12)`,
-                duration: POST_ENTRANCE_DURATION,
-                ease: "back.out(1.08)",
-              },
-              0,
-            );
+                  borderRadius: getCompensatedRadius(
+                    targetRadius,
+                    scaleX,
+                    scaleY,
+                  ),
+                  boxShadow: `0 ${18 / averageScale}px ${60 / averageScale}px rgba(0, 0, 0, 0.12)`,
+                  duration: POST_ENTRANCE_DURATION,
+                  ease: "back.out(1.28)",
+                },
+                0,
+              );
+            } else {
+              timeline.to(
+                proxy,
+                {
+                  x: targetRect.left - sourceRect.left,
+                  y: targetRect.top - sourceRect.top,
+                  scaleX,
+                  scaleY,
+                  borderRadius: getCompensatedRadius(
+                    targetRadius,
+                    scaleX,
+                    scaleY,
+                  ),
+                  boxShadow: `0 ${18 / averageScale}px ${60 / averageScale}px rgba(0, 0, 0, 0.12)`,
+                  duration: POST_ENTRANCE_DURATION,
+                  ease: "back.out(1.08)",
+                },
+                0,
+              );
+            }
             return true;
           }
 
