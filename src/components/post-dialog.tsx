@@ -2,7 +2,7 @@
 
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   createContext,
   type MouseEvent,
@@ -87,11 +87,13 @@ export function PostDialog({
   closeMode,
 }: PropsWithChildren<{ closeMode: PostDialogCloseMode }>) {
   const router = useRouter();
+  const pathname = usePathname();
   const scope = useRef<HTMLDivElement>(null);
   const entrance = useRef<gsap.core.Timeline>(null);
   const entranceHero = useRef<HTMLElement>(null);
   const entranceHeroRect = useRef<DOMRect>(null);
   const entranceProxy = useRef<HTMLDivElement>(null);
+  const exitProxy = useRef<HTMLDivElement>(null);
   const closing = useRef(false);
 
   const finishClose = useCallback(() => {
@@ -118,6 +120,8 @@ export function PostDialog({
     entrance.current = null;
     entranceProxy.current?.remove();
     entranceProxy.current = null;
+    exitProxy.current?.remove();
+    exitProxy.current = null;
 
     if (entranceHero.current) {
       gsap.set(entranceHero.current, { clearProps: "opacity,visibility" });
@@ -154,7 +158,13 @@ export function PostDialog({
     gsap.set(root, { pointerEvents: "none" });
     prepareGalleryForTransition(gallery, hero);
 
-    const timeline = gsap.timeline({ onComplete: finishClose });
+    const timeline = gsap.timeline({
+      onComplete: () => {
+        exitProxy.current?.remove();
+        exitProxy.current = null;
+        finishClose();
+      },
+    });
 
     timeline.to(
       backdrop,
@@ -185,6 +195,7 @@ export function PostDialog({
       });
 
       if (proxy) {
+        exitProxy.current = proxy;
         const scaleX = sourceRect.width / finalHeroRect.width;
         const scaleY = sourceRect.height / finalHeroRect.height;
         const sourceRadius = getCornerRadius(source);
@@ -256,6 +267,10 @@ export function PostDialog({
     return () => {
       document.documentElement.style.overflow = previousOverflow;
       window.removeEventListener("keydown", handleKeyDown);
+      entranceProxy.current?.remove();
+      entranceProxy.current = null;
+      exitProxy.current?.remove();
+      exitProxy.current = null;
     };
   }, [requestClose]);
 
@@ -264,6 +279,17 @@ export function PostDialog({
       const root = scope.current;
 
       if (!root || closeMode !== "back") return;
+
+      closing.current = false;
+      entrance.current = null;
+      gsap.set(root, { clearProps: "pointerEvents" });
+      entranceProxy.current?.remove();
+      entranceProxy.current = null;
+      exitProxy.current?.remove();
+      exitProxy.current = null;
+      root
+        .querySelectorAll<HTMLElement>("[data-post-dialog-media-proxy]")
+        .forEach((proxy) => proxy.remove());
 
       let observer: MutationObserver | undefined;
 
@@ -453,7 +479,7 @@ export function PostDialog({
         entranceProxy.current = null;
       };
     },
-    { scope },
+    { scope, dependencies: [pathname], revertOnUpdate: true },
   );
 
   function handleDialogClick(event: MouseEvent<HTMLDivElement>) {
