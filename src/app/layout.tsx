@@ -27,11 +27,20 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default function RootLayout({
+  children,
+  modal,
+}: {
+  children: ReactNode;
+  modal?: ReactNode;
+}) {
   return (
     <html lang="en" className={inter.variable}>
       <body className="font-[family-name:var(--font-inter)]">
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          {children}
+          {modal}
+        </AuthProvider>
       </body>
     </html>
   );

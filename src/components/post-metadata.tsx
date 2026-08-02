@@ -6,6 +6,8 @@ import type { ReactNode } from "react";
 import type { Post } from "@/domain/post";
 
 import { NewsletterForm } from "./newsletter-form";
+import { PostCloseButton } from "./post-close-button";
+import type { PostDialogCloseMode } from "./post-dialog";
 
 type AdjacentPost = Pick<Post, "slug" | "title">;
 
@@ -34,14 +36,17 @@ function CircleLink({
   href,
   label,
   children,
+  replace = false,
 }: {
   href: Route;
   label: string;
   children: ReactNode;
+  replace?: boolean;
 }) {
   return (
     <Link
       href={href}
+      replace={replace}
       aria-label={label}
       className="focus-ring flex size-10 items-center justify-center rounded-full border border-[#e6e6e6] bg-[#e6e6e6] text-[#95959d] transition-colors hover:bg-[#dcdcdc] hover:text-[#505050]"
     >
@@ -54,28 +59,50 @@ export function PostMetadata({
   post,
   previousPost,
   nextPost,
+  closeMode,
+  overlay = false,
 }: {
   post: Post;
   previousPost: AdjacentPost;
   nextPost: AdjacentPost;
+  closeMode?: PostDialogCloseMode;
+  overlay?: boolean;
 }) {
   return (
-    <aside className="order-first flex min-h-[100dvh] w-full shrink-0 flex-col border-l border-[#e5e7eb] bg-white lg:order-last lg:h-[100dvh] lg:w-[522px]">
-      <div className="flex min-h-full flex-1 flex-col px-5 pb-8 pt-7 sm:px-[47px] lg:pb-[62px]">
+    <aside
+      className={`flex w-full shrink-0 flex-col border-l border-[#e5e7eb] bg-white ${
+        overlay
+          ? "min-h-fit lg:h-[100dvh] lg:w-[clamp(300px,29.25vw,522px)]"
+          : "order-first min-h-[100dvh] lg:order-last lg:h-[100dvh] lg:w-[522px]"
+      }`}
+    >
+      <div
+        className={`flex min-h-full flex-1 flex-col px-5 pb-8 pt-7 lg:pb-[62px] ${
+          overlay ? "lg:px-[34px]" : "sm:px-[47px]"
+        }`}
+      >
         <nav className="flex h-10 items-center justify-between" aria-label="Post navigation">
-          <CircleLink href="/" label="Close post">
-            <CloseIcon />
-          </CircleLink>
+          {closeMode ? (
+            <PostCloseButton closeMode={closeMode}>
+              <CloseIcon />
+            </PostCloseButton>
+          ) : (
+            <CircleLink href="/" label="Close post">
+              <CloseIcon />
+            </CircleLink>
+          )}
           <div className="flex items-center gap-5">
             <CircleLink
               href={`/posts/${previousPost.slug}` as Route}
               label={`Previous post: ${previousPost.title}`}
+              replace={overlay}
             >
               <ArrowIcon direction="left" />
             </CircleLink>
             <CircleLink
               href={`/posts/${nextPost.slug}` as Route}
               label={`Next post: ${nextPost.title}`}
+              replace={overlay}
             >
               <ArrowIcon direction="right" />
             </CircleLink>

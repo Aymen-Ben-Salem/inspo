@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { PostGallery } from "@/components/post-gallery";
-import { PostMetadata } from "@/components/post-metadata";
+import { ArchiveView } from "@/components/archive-view";
+import { PostDetail } from "@/components/post-detail";
+import { PostDialog } from "@/components/post-dialog";
 import {
   getPostBySlug,
   getPosts,
@@ -51,9 +52,16 @@ export default async function PostPage({ params }: PostPageProps) {
   const nextPost = posts[(currentIndex + 1) % posts.length] ?? post;
 
   return (
-    <main className="flex min-h-[100dvh] w-full max-w-full flex-col overflow-x-hidden bg-[#262626] lg:h-[100dvh] lg:flex-row lg:overflow-hidden">
-      <PostGallery post={post} />
-      <PostMetadata post={post} previousPost={previousPost} nextPost={nextPost} />
-    </main>
+    <>
+      <ArchiveView posts={posts} />
+      <PostDialog closeMode="home">
+        <PostDetail
+          post={post}
+          previousPost={previousPost}
+          nextPost={nextPost}
+          closeMode="home"
+        />
+      </PostDialog>
+    </>
   );
 }

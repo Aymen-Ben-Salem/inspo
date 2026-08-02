@@ -6,7 +6,10 @@ import { PropsWithChildren, useRef } from "react";
 
 gsap.registerPlugin(useGSAP);
 
-export function DetailMotion({ children }: PropsWithChildren) {
+export function DetailMotion({
+  children,
+  overlay = false,
+}: PropsWithChildren<{ overlay?: boolean }>) {
   const scope = useRef<HTMLDivElement>(null);
 
   useGSAP(
@@ -25,7 +28,9 @@ export function DetailMotion({ children }: PropsWithChildren) {
   return (
     <div
       ref={scope}
-      className="flex min-h-[72dvh] min-w-0 flex-1 snap-x snap-mandatory items-center overflow-x-auto overflow-y-hidden bg-[#262626] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:h-[100dvh]"
+      className={`flex min-h-[62dvh] min-w-0 flex-1 snap-x snap-mandatory items-center overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:h-[100dvh] ${
+        overlay ? "bg-transparent" : "bg-[#262626]"
+      }`}
     >
       {children}
     </div>
