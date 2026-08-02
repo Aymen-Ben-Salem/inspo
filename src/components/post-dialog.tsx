@@ -17,12 +17,12 @@ gsap.registerPlugin(useGSAP);
 
 export type PostDialogCloseMode = "back" | "home";
 
-const POST_ENTRANCE_DURATION = 0.54;
-const POST_EXIT_DURATION = 0.48;
+const POST_ENTRANCE_DURATION = 0.46;
+const POST_EXIT_DURATION = 0.42;
 const SIDEBAR_ENTRANCE_DURATION = POST_ENTRANCE_DURATION;
-const SIDEBAR_EXIT_DURATION = 0.32;
+const SIDEBAR_EXIT_DURATION = 0.28;
 const SIDEBAR_ENTRANCE_DELAY = 0;
-const POST_EXIT_DELAY = 0.08;
+const POST_EXIT_DELAY = 0.07;
 const EXIT_DURATION = POST_EXIT_DELAY + POST_EXIT_DURATION;
 
 const PostDialogCloseContext = createContext<(() => void) | undefined>(undefined);
