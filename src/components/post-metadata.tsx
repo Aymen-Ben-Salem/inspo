@@ -121,7 +121,7 @@ export function PostMetadata({
                 <h1 className="text-[22px] font-medium leading-normal tracking-[0.044px] text-black">
                   {post.title}
                 </h1>
-                <div className="mt-[3px] flex h-[30px] items-center gap-[7px] text-[16px] tracking-[0.032px] text-[rgba(88,88,88,0.8)]">
+                <div className="mt-2 flex h-[30px] items-center gap-[7px] text-[16px] tracking-[0.032px] text-[rgba(88,88,88,0.8)]">
                   <Image
                     src={post.creatorAvatarUrl}
                     alt=""
@@ -143,7 +143,7 @@ export function PostMetadata({
             href={post.sourceUrl}
             target="_blank"
             rel="noreferrer"
-            className="focus-ring inline-flex h-[42px] w-full items-center justify-center rounded-full bg-[#262626] px-[14px] text-[18px] font-medium tracking-[0.036px] text-white transition-colors hover:bg-black"
+            className="focus-ring inline-flex h-[42px] w-full items-center justify-center rounded-full bg-[#262626] px-[14px] text-[18px] font-medium leading-normal tracking-[0.036px] text-white transition-colors hover:bg-black"
           >
             View original
           </a>
