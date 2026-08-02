@@ -16,13 +16,13 @@ const inter = localFont({
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.SITE_URL ?? "http://localhost:3000"),
   title: {
-    default: "n — Inspiration",
-    template: "%s — n",
+    default: "Inspora",
+    template: "%s — Inspora",
   },
   description: "A curated archive of recent visual design and creative work.",
   openGraph: {
     type: "website",
-    title: "n — Inspiration",
+    title: "Inspora",
     description: "A curated archive of recent visual design and creative work.",
   },
 };
