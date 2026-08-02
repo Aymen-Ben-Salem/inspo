@@ -19,6 +19,16 @@ function getVideoSource(video: HTMLVideoElement) {
   return video.currentSrc || video.src;
 }
 
+function cloneImage(source: HTMLImageElement) {
+  const image = source.cloneNode(false) as HTMLImageElement;
+
+  image.removeAttribute("sizes");
+  image.removeAttribute("srcset");
+  image.src = getImageSource(source);
+
+  return image;
+}
+
 function configureProxyMedia(
   proxyMedia: HTMLImageElement | HTMLVideoElement,
   sourceMedia: HTMLImageElement | HTMLVideoElement,
@@ -40,6 +50,12 @@ function configureProxyMedia(
 }
 
 function createVideoProxy(source: HTMLVideoElement) {
+  if (source.poster) {
+    const poster = document.createElement("img");
+    poster.src = source.poster;
+    return poster;
+  }
+
   const src = getVideoSource(source);
 
   if (!src) return undefined;
@@ -94,48 +110,31 @@ export function createMediaProxy({
   media,
   rect,
   root,
-  videoPlaybackSource = "media",
+  mediaSourcePreference = "media",
 }: {
   fallback?: HTMLElement;
   media: HTMLElement;
   rect: DOMRect;
   root: HTMLElement;
-  videoPlaybackSource?: "fallback" | "media";
+  mediaSourcePreference?: "fallback" | "media";
 }) {
   const primaryMedia = getMediaElement(media);
   const fallbackMedia = getMediaElement(fallback);
-  const mediaElement = primaryMedia ?? fallbackMedia;
+  const mediaElement =
+    mediaSourcePreference === "fallback"
+      ? fallbackMedia ?? primaryMedia
+      : primaryMedia ?? fallbackMedia;
 
   if (!mediaElement) return undefined;
 
-  const videoSource =
-    videoPlaybackSource === "fallback" &&
-    fallbackMedia instanceof HTMLVideoElement
-      ? fallbackMedia
-      : primaryMedia instanceof HTMLVideoElement
-        ? primaryMedia
-        : fallbackMedia instanceof HTMLVideoElement
-          ? fallbackMedia
-          : undefined;
-  const proxyMedia = videoSource
-    ? createVideoProxy(videoSource)
-    : mediaElement instanceof HTMLImageElement
-      ? document.createElement("img")
-      : undefined;
+  const proxyMedia =
+    mediaElement instanceof HTMLVideoElement
+      ? createVideoProxy(mediaElement)
+      : mediaElement instanceof HTMLImageElement
+        ? cloneImage(mediaElement)
+        : undefined;
 
   if (!proxyMedia) return undefined;
-
-  if (proxyMedia instanceof HTMLImageElement) {
-    const imageSource =
-      primaryMedia instanceof HTMLImageElement
-        ? primaryMedia
-        : fallbackMedia instanceof HTMLImageElement
-          ? fallbackMedia
-          : undefined;
-
-    if (!imageSource) return undefined;
-    proxyMedia.src = getImageSource(imageSource);
-  }
 
   const proxy = document.createElement("div");
 
@@ -154,7 +153,7 @@ export function createMediaProxy({
     zIndex: "3",
   });
 
-  configureProxyMedia(proxyMedia, videoSource ?? mediaElement);
+  configureProxyMedia(proxyMedia, mediaElement);
   proxy.appendChild(proxyMedia);
   root.appendChild(proxy);
 

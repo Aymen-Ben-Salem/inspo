@@ -24,11 +24,14 @@ export function PostGallery({ post, overlay = false }: { post: Post; overlay?: b
               <LoopingVideo
                 data-post-dialog-surface={overlay ? "" : undefined}
                 data-post-dialog-hero={overlay && media.position === 0 ? "" : undefined}
+                data-post-dialog-animated-media
                 src={media.url}
                 poster={media.posterUrl}
                 aria-label={media.alt}
                 draggable={false}
                 eager
+                width={media.width}
+                height={media.height}
                 className={`h-auto max-w-full rounded-[10px] object-cover lg:w-auto ${mediaSize} ${
                   overlay ? "shadow-[0_18px_60px_rgba(0,0,0,0.12)]" : ""
                 }`}
@@ -37,6 +40,9 @@ export function PostGallery({ post, overlay = false }: { post: Post; overlay?: b
               <Image
                 data-post-dialog-surface={overlay ? "" : undefined}
                 data-post-dialog-hero={overlay && media.position === 0 ? "" : undefined}
+                data-post-dialog-animated-media={
+                  isGifUrl(media.url) ? "" : undefined
+                }
                 src={media.url}
                 alt={media.alt}
                 width={media.width}

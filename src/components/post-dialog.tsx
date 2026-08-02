@@ -343,7 +343,11 @@ export function PostDialog({
             media: hero,
             rect: targetRect,
             root,
-            videoPlaybackSource: "fallback",
+            mediaSourcePreference: hero.hasAttribute(
+              "data-post-dialog-animated-media",
+            )
+              ? "fallback"
+              : "media",
           });
 
           if (proxy) {
