@@ -15,6 +15,7 @@ export function PostGallery({ post, overlay = false }: { post: Post; overlay?: b
         >
           {media.type === "video" ? (
             <video
+              data-post-dialog-surface={overlay ? "" : undefined}
               src={media.url}
               poster={media.posterUrl}
               controls
@@ -28,6 +29,7 @@ export function PostGallery({ post, overlay = false }: { post: Post; overlay?: b
             </video>
           ) : (
             <Image
+              data-post-dialog-surface={overlay ? "" : undefined}
               src={media.url}
               alt={media.alt}
               width={media.width}

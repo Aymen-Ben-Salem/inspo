@@ -1,7 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { type PropsWithChildren, useCallback, useEffect } from "react";
+import {
+  type MouseEvent,
+  type PropsWithChildren,
+  useCallback,
+  useEffect,
+} from "react";
 
 export type PostDialogCloseMode = "back" | "home";
 
@@ -36,19 +41,25 @@ export function PostDialog({
     };
   }, [close]);
 
+  function handleDialogClick(event: MouseEvent<HTMLDivElement>) {
+    const target = event.target;
+
+    if (target instanceof Element && target.closest("[data-post-dialog-surface]")) {
+      return;
+    }
+
+    close();
+  }
+
   return (
     <div
       role="dialog"
       aria-modal="true"
       aria-label="Post details"
+      onClick={handleDialogClick}
       className="fixed inset-0 z-50 isolate"
     >
-      <button
-        type="button"
-        aria-label="Close post"
-        onClick={close}
-        className="absolute inset-0 cursor-default bg-white/10 backdrop-blur-[3px]"
-      />
+      <div aria-hidden="true" className="absolute inset-0 bg-white/10 backdrop-blur-[3px]" />
       <div className="pointer-events-none relative h-full">{children}</div>
     </div>
   );
