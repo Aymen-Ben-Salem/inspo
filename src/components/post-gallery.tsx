@@ -8,9 +8,8 @@ export function PostGallery({ post, overlay = false }: { post: Post; overlay?: b
   return (
     <DetailMotion overlay={overlay}>
       {post.media.map((media) => {
-        const emphasizePortraitScale =
-          overlay && media.height / media.width >= 1.15;
-        const mediaSize = emphasizePortraitScale
+        const isPortrait = media.height / media.width >= 1.15;
+        const mediaSize = overlay && isPortrait
           ? "max-h-[85dvh] lg:h-[85dvh]"
           : "max-h-[79.2dvh] lg:h-[79.2dvh]";
 
@@ -24,9 +23,6 @@ export function PostGallery({ post, overlay = false }: { post: Post; overlay?: b
               <video
                 data-post-dialog-surface={overlay ? "" : undefined}
                 data-post-dialog-hero={overlay && media.position === 0 ? "" : undefined}
-                data-post-dialog-emphasize-scale={
-                  emphasizePortraitScale ? "" : undefined
-                }
                 src={media.url}
                 poster={media.posterUrl}
                 controls
@@ -42,9 +38,6 @@ export function PostGallery({ post, overlay = false }: { post: Post; overlay?: b
               <Image
                 data-post-dialog-surface={overlay ? "" : undefined}
                 data-post-dialog-hero={overlay && media.position === 0 ? "" : undefined}
-                data-post-dialog-emphasize-scale={
-                  emphasizePortraitScale ? "" : undefined
-                }
                 src={media.url}
                 alt={media.alt}
                 width={media.width}

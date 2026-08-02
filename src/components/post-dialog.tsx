@@ -23,12 +23,12 @@ gsap.registerPlugin(useGSAP);
 
 export type PostDialogCloseMode = "back" | "home";
 
-const POST_ENTRANCE_DURATION = 0.46;
-const POST_EXIT_DURATION = 0.42;
-const SIDEBAR_ENTRANCE_DURATION = POST_ENTRANCE_DURATION;
-const SIDEBAR_EXIT_DURATION = 0.28;
+const POST_ENTRANCE_DURATION = 0.38;
+const POST_EXIT_DURATION = 0.34;
+const SIDEBAR_ENTRANCE_DURATION = 0.34;
+const SIDEBAR_EXIT_DURATION = 0.2;
 const SIDEBAR_ENTRANCE_DELAY = 0;
-const POST_EXIT_DELAY = 0.07;
+const POST_EXIT_DELAY = 0.035;
 const EXIT_DURATION = POST_EXIT_DELAY + POST_EXIT_DURATION;
 
 const PostDialogCloseContext = createContext<(() => void) | undefined>(undefined);
@@ -326,7 +326,7 @@ export function PostDialog({
           {
             xPercent: 0,
             duration: SIDEBAR_ENTRANCE_DURATION,
-            ease: "back.out(1.08)",
+            ease: "power3.out",
             clearProps: "transform,willChange",
           },
           SIDEBAR_ENTRANCE_DELAY,
@@ -341,70 +341,43 @@ export function PostDialog({
           proxy = createMediaProxy({
             fallback: source,
             media: hero,
-            rect: sourceRect,
+            rect: targetRect,
             root,
           });
 
           if (proxy) {
-            const scaleX = targetRect.width / sourceRect.width;
-            const scaleY = targetRect.height / sourceRect.height;
+            const scaleX = sourceRect.width / targetRect.width;
+            const scaleY = sourceRect.height / targetRect.height;
             const targetRadius = getCornerRadius(hero);
-            const averageScale = (scaleX + scaleY) / 2;
-            const emphasizeScale = hero.hasAttribute(
-              "data-post-dialog-emphasize-scale",
-            );
 
             entranceProxy.current = proxy;
-            gsap.set(proxy, { borderRadius: getCornerRadius(source) });
+            gsap.set(proxy, {
+              x: sourceRect.left - targetRect.left,
+              y: sourceRect.top - targetRect.top,
+              scaleX,
+              scaleY,
+              borderRadius: getCompensatedRadius(
+                getCornerRadius(source),
+                scaleX,
+                scaleY,
+              ),
+              boxShadow: "0 0 0 rgba(0, 0, 0, 0)",
+            });
             gsap.set(hero, { autoAlpha: 0 });
-
-            if (emphasizeScale) {
-              timeline.to(
-                proxy,
-                {
-                  x: targetRect.left - sourceRect.left,
-                  y: targetRect.top - sourceRect.top,
-                  duration: POST_ENTRANCE_DURATION,
-                  ease: "power3.inOut",
-                },
-                0,
-              );
-              timeline.to(
-                proxy,
-                {
-                  scaleX,
-                  scaleY,
-                  borderRadius: getCompensatedRadius(
-                    targetRadius,
-                    scaleX,
-                    scaleY,
-                  ),
-                  boxShadow: `0 ${18 / averageScale}px ${60 / averageScale}px rgba(0, 0, 0, 0.12)`,
-                  duration: POST_ENTRANCE_DURATION,
-                  ease: "back.out(1.28)",
-                },
-                0,
-              );
-            } else {
-              timeline.to(
-                proxy,
-                {
-                  x: targetRect.left - sourceRect.left,
-                  y: targetRect.top - sourceRect.top,
-                  scaleX,
-                  scaleY,
-                  borderRadius: getCompensatedRadius(
-                    targetRadius,
-                    scaleX,
-                    scaleY,
-                  ),
-                  boxShadow: `0 ${18 / averageScale}px ${60 / averageScale}px rgba(0, 0, 0, 0.12)`,
-                  duration: POST_ENTRANCE_DURATION,
-                  ease: "back.out(1.08)",
-                },
-                0,
-              );
-            }
+            timeline.to(
+              proxy,
+              {
+                x: 0,
+                y: 0,
+                scaleX: 1,
+                scaleY: 1,
+                borderRadius: targetRadius,
+                boxShadow: "0 18px 60px rgba(0, 0, 0, 0.12)",
+                duration: POST_ENTRANCE_DURATION,
+                ease: "power3.out",
+              },
+              0,
+            );
             return true;
           }
 
@@ -424,7 +397,7 @@ export function PostDialog({
               scaleX: 1,
               scaleY: 1,
               duration: POST_ENTRANCE_DURATION,
-              ease: "back.out(1.08)",
+              ease: "power3.out",
               clearProps: "transform,transformOrigin,willChange",
             },
             0,
@@ -439,7 +412,7 @@ export function PostDialog({
             autoAlpha: 1,
             scale: 1,
             duration: POST_ENTRANCE_DURATION,
-            ease: "back.out(1.08)",
+            ease: "power3.out",
             clearProps: "transform,opacity,visibility",
           },
           0,
