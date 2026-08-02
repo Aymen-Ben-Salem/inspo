@@ -19,6 +19,30 @@ function getVideoSource(video: HTMLVideoElement) {
   return video.currentSrc || video.src;
 }
 
+export function getIntrinsicMediaAspectRatio(
+  element: HTMLElement | undefined,
+) {
+  const media = getMediaElement(element);
+
+  if (
+    media instanceof HTMLImageElement &&
+    media.naturalWidth > 0 &&
+    media.naturalHeight > 0
+  ) {
+    return media.naturalWidth / media.naturalHeight;
+  }
+
+  if (
+    media instanceof HTMLVideoElement &&
+    media.videoWidth > 0 &&
+    media.videoHeight > 0
+  ) {
+    return media.videoWidth / media.videoHeight;
+  }
+
+  return undefined;
+}
+
 function cloneImage(source: HTMLImageElement) {
   const image = source.cloneNode(false) as HTMLImageElement;
 

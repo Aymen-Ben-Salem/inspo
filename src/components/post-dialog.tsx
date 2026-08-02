@@ -17,6 +17,7 @@ import {
   createMediaProxy,
   getCompensatedRadius,
   getCornerRadius,
+  getIntrinsicMediaAspectRatio,
 } from "./post-dialog-media-proxy";
 
 gsap.registerPlugin(useGSAP);
@@ -283,8 +284,22 @@ export function PostDialog({
 
         if (!backdrop || !gallery || !sidebar || !hero || !postId) return false;
 
-        const targetRect = hero.getBoundingClientRect();
         const source = findFeedPost(postId);
+        const intrinsicAspectRatio = getIntrinsicMediaAspectRatio(source);
+        const maxViewportHeight = Number(
+          hero.dataset.postDialogMaxViewportHeight,
+        );
+
+        if (
+          intrinsicAspectRatio &&
+          Number.isFinite(maxViewportHeight) &&
+          maxViewportHeight > 0
+        ) {
+          hero.style.aspectRatio = String(intrinsicAspectRatio);
+          hero.style.width = `min(100%, ${maxViewportHeight * intrinsicAspectRatio}dvh)`;
+        }
+
+        const targetRect = hero.getBoundingClientRect();
         const sourceRect = source?.getBoundingClientRect();
         const reducedMotion = window.matchMedia(
           "(prefers-reduced-motion: reduce)",

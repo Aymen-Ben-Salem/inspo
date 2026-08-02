@@ -25,6 +25,7 @@ export function PostGallery({ post, overlay = false }: { post: Post; overlay?: b
               data-post-dialog-surface={overlay ? "" : undefined}
               data-post-dialog-hero={overlay && media.position === 0 ? "" : undefined}
               data-post-dialog-animated-media={isAnimated ? "" : undefined}
+              data-post-dialog-max-viewport-height={maxViewportHeight}
               className={`relative shrink-0 overflow-hidden rounded-[10px] bg-[#f3f3f3] ${
                 overlay ? "shadow-[0_18px_60px_rgba(0,0,0,0.12)]" : ""
               }`}
