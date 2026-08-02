@@ -50,48 +50,50 @@ export async function getSubscribersForExport() {
 export async function unsubscribeSubscriber(id: string, actorId: string) {
   const database = requireDatabase();
   const now = new Date();
+  const existing = await database.query.subscribers.findFirst({
+    where: and(eq(subscribers.id, id), eq(subscribers.status, "active")),
+    columns: { id: true },
+  });
 
-  return database.transaction(async (transaction) => {
-    const [updated] = await transaction
+  if (!existing) throw new Error("The subscriber is already unsubscribed or no longer exists.");
+
+  await database.batch([
+    database
       .update(subscribers)
       .set({ status: "unsubscribed", unsubscribedAt: now, updatedAt: now })
-      .where(and(eq(subscribers.id, id), eq(subscribers.status, "active")))
-      .returning({ id: subscribers.id });
-
-    if (!updated) throw new Error("The subscriber is already unsubscribed or no longer exists.");
-
-    await transaction.insert(adminAuditLogs).values({
+      .where(and(eq(subscribers.id, id), eq(subscribers.status, "active"))),
+    database.insert(adminAuditLogs).values({
       actorId,
       action: "subscriber.unsubscribed",
       resourceType: "subscriber",
       resourceId: id,
-    });
+    }),
+  ]);
 
-    return updated;
-  });
+  return existing;
 }
 
 export async function deleteSubscriber(id: string, actorId: string) {
   const database = requireDatabase();
+  const existing = await database.query.subscribers.findFirst({
+    where: eq(subscribers.id, id),
+    columns: { id: true, status: true },
+  });
 
-  return database.transaction(async (transaction) => {
-    const [deleted] = await transaction
-      .delete(subscribers)
-      .where(eq(subscribers.id, id))
-      .returning({ id: subscribers.id, status: subscribers.status });
+  if (!existing) throw new Error("Subscriber not found.");
 
-    if (!deleted) throw new Error("Subscriber not found.");
-
-    await transaction.insert(adminAuditLogs).values({
+  await database.batch([
+    database.delete(subscribers).where(eq(subscribers.id, id)),
+    database.insert(adminAuditLogs).values({
       actorId,
       action: "subscriber.deleted",
       resourceType: "subscriber",
       resourceId: id,
-      details: { previousStatus: deleted.status },
-    });
+      details: { previousStatus: existing.status },
+    }),
+  ]);
 
-    return deleted;
-  });
+  return existing;
 }
 
 export async function recordSubscriberExport(actorId: string, count: number) {

@@ -1,5 +1,7 @@
 import "server-only";
 
+import { randomUUID } from "node:crypto";
+
 import { and, asc, desc, eq, ne } from "drizzle-orm";
 
 import { requireDatabase } from "@/db/client";
@@ -120,32 +122,28 @@ export async function getAdminPostById(id: string) {
 export async function createAdminPost(input: AdminPostInput, actorId: string) {
   const database = requireDatabase();
   const now = new Date();
+  const id = randomUUID();
 
-  return database.transaction(async (transaction) => {
-    const [created] = await transaction
-      .insert(posts)
-      .values({
-        ...postValues(input),
-        publishedAt: input.status === "published" ? now : null,
-        archivedAt: null,
-        createdBy: actorId,
-        updatedBy: actorId,
-      })
-      .returning({ id: posts.id, slug: posts.slug });
-
-    if (!created) throw new Error("The post could not be created.");
-
-    await transaction.insert(postMedia).values(mediaValues(created.id, input));
-    await transaction.insert(adminAuditLogs).values({
+  await database.batch([
+    database.insert(posts).values({
+      id,
+      ...postValues(input),
+      publishedAt: input.status === "published" ? now : null,
+      archivedAt: null,
+      createdBy: actorId,
+      updatedBy: actorId,
+    }),
+    database.insert(postMedia).values(mediaValues(id, input)),
+    database.insert(adminAuditLogs).values({
       actorId,
       action: "post.created",
       resourceType: "post",
-      resourceId: created.id,
-      details: { slug: created.slug, status: input.status },
-    });
+      resourceId: id,
+      details: { slug: input.slug, status: input.status },
+    }),
+  ]);
 
-    return created;
-  });
+  return { id, slug: input.slug };
 }
 
 export async function updateAdminPost(
@@ -171,8 +169,8 @@ export async function updateAdminPost(
     (media) => !retainedStorageKeys.has(media.storageKey),
   );
 
-  return database.transaction(async (transaction) => {
-    const [updated] = await transaction
+  await database.batch([
+    database
       .update(posts)
       .set({
         ...postValues(input),
@@ -181,53 +179,56 @@ export async function updateAdminPost(
         updatedBy: actorId,
         updatedAt: now,
       })
-      .where(eq(posts.id, id))
-      .returning({ id: posts.id, slug: posts.slug });
-
-    if (!updated) throw new Error("The post could not be updated.");
-
-    await transaction.delete(postMedia).where(eq(postMedia.postId, id));
-    await transaction.insert(postMedia).values(mediaValues(id, input));
-    await transaction.insert(adminAuditLogs).values({
+      .where(eq(posts.id, id)),
+    database.delete(postMedia).where(eq(postMedia.postId, id)),
+    database.insert(postMedia).values(mediaValues(id, input)),
+    database.insert(adminAuditLogs).values({
       actorId,
       action: "post.updated",
       resourceType: "post",
       resourceId: id,
       details: {
         previousSlug: existing.slug,
-        slug: updated.slug,
+        slug: input.slug,
         previousStatus: existing.status,
         status: input.status,
       },
-    });
+    }),
+  ]);
 
-    return { ...updated, previousSlug: existing.slug, removedManagedMedia };
-  });
+  return {
+    id,
+    slug: input.slug,
+    previousSlug: existing.slug,
+    removedManagedMedia,
+  };
 }
 
 export async function archiveAdminPost(id: string, actorId: string) {
   const database = requireDatabase();
   const now = new Date();
+  const existing = await database.query.posts.findFirst({
+    where: and(eq(posts.id, id), ne(posts.status, "archived")),
+    columns: { id: true, slug: true },
+  });
 
-  return database.transaction(async (transaction) => {
-    const [archived] = await transaction
+  if (!existing) throw new Error("Only active posts can be archived.");
+
+  await database.batch([
+    database
       .update(posts)
       .set({ status: "archived", archivedAt: now, updatedAt: now, updatedBy: actorId })
-      .where(and(eq(posts.id, id), ne(posts.status, "archived")))
-      .returning({ id: posts.id, slug: posts.slug });
-
-    if (!archived) throw new Error("Only active posts can be archived.");
-
-    await transaction.insert(adminAuditLogs).values({
+      .where(and(eq(posts.id, id), ne(posts.status, "archived"))),
+    database.insert(adminAuditLogs).values({
       actorId,
       action: "post.archived",
       resourceType: "post",
       resourceId: id,
-      details: { slug: archived.slug },
-    });
+      details: { slug: existing.slug },
+    }),
+  ]);
 
-    return archived;
-  });
+  return existing;
 }
 
 export async function deleteArchivedPost(id: string, actorId: string) {
@@ -241,22 +242,18 @@ export async function deleteArchivedPost(id: string, actorId: string) {
 
   const removedManagedMedia = managedAssets(existing.media);
 
-  return database.transaction(async (transaction) => {
-    const [deleted] = await transaction
+  await database.batch([
+    database
       .delete(posts)
-      .where(and(eq(posts.id, id), eq(posts.status, "archived")))
-      .returning({ id: posts.id, slug: posts.slug });
-
-    if (!deleted) throw new Error("Archive the post before deleting it permanently.");
-
-    await transaction.insert(adminAuditLogs).values({
+      .where(and(eq(posts.id, id), eq(posts.status, "archived"))),
+    database.insert(adminAuditLogs).values({
       actorId,
       action: "post.deleted",
       resourceType: "post",
       resourceId: id,
-      details: { slug: deleted.slug },
-    });
+      details: { slug: existing.slug },
+    }),
+  ]);
 
-    return { ...deleted, removedManagedMedia };
-  });
+  return { id: existing.id, slug: existing.slug, removedManagedMedia };
 }
