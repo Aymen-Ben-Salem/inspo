@@ -36,7 +36,7 @@ export function PostCard({ post }: { post: Post }) {
             alt={cover.alt}
             fill
             unoptimized={isGifUrl(cover.url)}
-            sizes="(min-width: 1680px) 270px, (min-width: 1440px) 20vw, (min-width: 1120px) 25vw, (min-width: 760px) 33vw, (min-width: 460px) 50vw, 100vw"
+            sizes="(min-width: 1120px) 395px, (min-width: 760px) 33vw, (min-width: 460px) 50vw, 100vw"
             className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
           />
         )}
