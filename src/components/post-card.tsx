@@ -15,7 +15,7 @@ export function PostCard({ post }: { post: Post }) {
         data-feed-post-id={post.id}
         href={`/posts/${post.slug}` as Route}
         aria-label={`View post: ${post.title}`}
-        className="focus-ring group relative block overflow-hidden rounded-[10px] bg-[#f3f3f3]"
+        className="focus-ring group relative block overflow-hidden rounded-[20px] bg-[#f3f3f3]"
         style={{ aspectRatio: `${cover.width}/${cover.height}` }}
       >
         <Image
@@ -33,7 +33,7 @@ export function PostCard({ post }: { post: Post }) {
             alt=""
             width={35}
             height={35}
-            className="size-[35px] shrink-0 rounded-full border border-[#e6e6e6] object-cover shadow-[0_2px_8px_rgba(0,0,0,0.18)]"
+            className="size-[35px] shrink-0 rounded-full border border-[#e6e6e6] object-cover"
           />
           <span className="min-w-0 translate-y-1 opacity-0 transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100">
             <span className="block truncate text-[13px] font-medium leading-tight text-white">
@@ -50,7 +50,7 @@ export function PostCard({ post }: { post: Post }) {
             <span aria-hidden="true">{post.media.length}</span>
           </span>
         ) : null}
-        <span className="pointer-events-none absolute inset-0 rounded-[10px] border border-black/10" />
+        <span className="pointer-events-none absolute inset-0 rounded-[20px] border border-black/10" />
       </Link>
     </article>
   );

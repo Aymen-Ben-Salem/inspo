@@ -340,7 +340,7 @@ export function PostDialog({
         <div
           data-post-dialog-backdrop
           aria-hidden="true"
-          className="absolute inset-0 bg-white/10 backdrop-blur-[3px]"
+          className="absolute inset-0 bg-white/10 backdrop-blur-[5px]"
         />
         <div className="pointer-events-none relative h-full">{children}</div>
       </div>

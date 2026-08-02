@@ -79,7 +79,7 @@ export function PostMetadata({
       }`}
     >
       <div
-        className={`flex min-h-full flex-1 flex-col px-5 pb-8 pt-7 lg:pb-[62px] ${
+        className={`flex min-h-full flex-1 flex-col px-5 pb-8 pt-7 lg:pb-7 ${
           overlay ? "lg:px-[34px]" : "sm:px-[47px]"
         }`}
       >

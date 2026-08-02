@@ -51,7 +51,7 @@ export function NewsletterForm({ compact = false }: { compact?: boolean }) {
 
   return (
     <form
-      className={`flex min-w-0 items-center gap-[10px] ${compact ? "w-[335px]" : "w-full max-w-[335px]"}`}
+      className={`flex min-w-0 items-center gap-[10px] ${compact ? "w-[369px]" : "w-full max-w-[429px]"}`}
       onSubmit={handleSubmit}
     >
       <label className="sr-only" htmlFor={compact ? "header-email" : "detail-email"}>
@@ -64,7 +64,9 @@ export function NewsletterForm({ compact = false }: { compact?: boolean }) {
         autoComplete="email"
         required
         placeholder="you@email.com"
-        className="focus-ring h-[37px] min-w-0 flex-1 rounded-full border border-[#e6e6e6] bg-[#fafafa] px-3 text-[14px] tracking-[-0.002em] text-[#555] outline-none transition-colors placeholder:text-[#8b8b8b] focus:border-[#aaa]"
+        className={`focus-ring h-[37px] min-w-0 flex-1 rounded-full border border-[#e6e6e6] bg-[#fafafa] text-[14px] tracking-[-0.002em] text-[#555] outline-none transition-colors placeholder:text-[#8b8b8b] focus:border-[#aaa] ${
+          compact ? "px-3" : "pl-4 pr-3"
+        }`}
       />
       <input
         name="company"
@@ -77,7 +79,9 @@ export function NewsletterForm({ compact = false }: { compact?: boolean }) {
       <button
         type="submit"
         disabled={status === "pending"}
-        className="focus-ring h-[37px] shrink-0 rounded-full bg-[#262626] px-3 text-[14px] tracking-[-0.002em] text-white transition-colors hover:bg-black disabled:cursor-wait disabled:opacity-60"
+        className={`focus-ring h-[37px] shrink-0 rounded-full bg-[#262626] text-[14px] tracking-[-0.002em] text-white transition-colors hover:bg-black disabled:cursor-wait disabled:opacity-60 ${
+          compact ? "px-3" : "px-[14px]"
+        }`}
       >
         {status === "pending" ? "joining..." : "subscribe"}
       </button>
