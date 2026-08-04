@@ -9,6 +9,22 @@ export type ManagedMediaAsset = {
   type: MediaType;
 };
 
+export type AdminCreatorInput = {
+  id?: string;
+  name: string;
+  handle?: string;
+  url?: string;
+  avatarUrl: string;
+  avatarStorageProvider?: MediaStorageProvider;
+  avatarStorageKey?: string;
+};
+
+export type AdminCreatorRecord = AdminCreatorInput & {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type AdminMediaInput = {
   type: MediaType;
   url: string;
@@ -23,10 +39,7 @@ export type AdminMediaInput = {
 export type AdminPostInput = {
   slug: string;
   title: string;
-  creatorName: string;
-  creatorHandle?: string;
-  creatorUrl?: string;
-  creatorAvatarUrl: string;
+  creator: AdminCreatorInput;
   description: string;
   category: PostCategory;
   industries: string[];
@@ -37,8 +50,9 @@ export type AdminPostInput = {
   media: AdminMediaInput[];
 };
 
-export type AdminPostRecord = Omit<AdminPostInput, "status"> & {
+export type AdminPostRecord = Omit<AdminPostInput, "status" | "creator"> & {
   id: string;
+  creator: AdminCreatorRecord;
   status: AdminPostStatus;
   publishedAt?: string;
   archivedAt?: string;

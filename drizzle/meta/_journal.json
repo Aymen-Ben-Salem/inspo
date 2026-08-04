@@ -22,6 +22,27 @@
       "when": 1785622805338,
       "tag": "0002_omniscient_marten_broadcloak",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1785864170542,
+      "tag": "0003_creator_profiles",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1785864200486,
+      "tag": "0004_remove_legacy_creator_fields",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1785865315456,
+      "tag": "0005_standard_creator_avatar",
+      "breakpoints": true
     }
   ]
 }

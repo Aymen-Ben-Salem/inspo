@@ -4,7 +4,12 @@ import { v2 as cloudinary } from "cloudinary";
 
 import type { ManagedMediaAsset } from "@/features/admin/types";
 
-const UPLOAD_FOLDER = "inspora/posts";
+const UPLOAD_FOLDERS = {
+  "post-media": "inspora/posts",
+  "creator-avatar": "inspora/creators",
+} as const;
+
+type UploadKind = keyof typeof UPLOAD_FOLDERS;
 
 type CloudinaryConfiguration = {
   cloudName: string;
@@ -46,11 +51,11 @@ function configureClient(configuration: CloudinaryConfiguration) {
   });
 }
 
-export function createCloudinaryUploadSignature() {
+export function createCloudinaryUploadSignature(kind: UploadKind) {
   const configuration = requireConfiguration();
   const timestamp = Math.floor(Date.now() / 1000);
   const parameters = {
-    folder: UPLOAD_FOLDER,
+    folder: UPLOAD_FOLDERS[kind],
     timestamp,
     upload_preset: configuration.uploadPreset,
   };

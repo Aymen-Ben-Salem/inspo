@@ -21,16 +21,37 @@ const timestamps = {
     .notNull(),
 };
 
+export const creators = pgTable(
+  "creators",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    name: text("name").notNull(),
+    handle: text("handle"),
+    url: text("url"),
+    avatarUrl: text("avatar_url").notNull(),
+    avatarStorageProvider: text("avatar_storage_provider"),
+    avatarStorageKey: text("avatar_storage_key"),
+    ...timestamps,
+  },
+  (table) => [
+    index("creators_name_idx").on(table.name),
+    check("creators_name_not_blank", sql`length(trim(${table.name})) > 0`),
+    check(
+      "creators_avatar_storage_consistent",
+      sql`(${table.avatarStorageProvider} is null and ${table.avatarStorageKey} is null) or (${table.avatarStorageProvider} = 'cloudinary' and length(trim(${table.avatarStorageKey})) > 0)`,
+    ),
+  ],
+);
+
 export const posts = pgTable(
   "posts",
   {
     id: uuid("id").defaultRandom().primaryKey(),
     slug: text("slug").notNull(),
     title: text("title").notNull(),
-    creatorName: text("creator_name").notNull(),
-    creatorHandle: text("creator_handle"),
-    creatorUrl: text("creator_url"),
-    creatorAvatarUrl: text("creator_avatar_url").notNull(),
+    creatorId: uuid("creator_id")
+      .notNull()
+      .references(() => creators.id, { onDelete: "restrict" }),
     description: text("description").notNull(),
     category: text("category").notNull(),
     industries: text("industries").array().default(sql`'{}'::text[]`).notNull(),
@@ -152,7 +173,15 @@ export const adminAuditLogs = pgTable(
   ],
 );
 
-export const postsRelations = relations(posts, ({ many }) => ({
+export const creatorsRelations = relations(creators, ({ many }) => ({
+  posts: many(posts),
+}));
+
+export const postsRelations = relations(posts, ({ many, one }) => ({
+  creator: one(creators, {
+    fields: [posts.creatorId],
+    references: [creators.id],
+  }),
   media: many(postMedia),
 }));
 

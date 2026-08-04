@@ -6,10 +6,11 @@ function validForm() {
   const form = new FormData();
   form.set("slug", "example-project");
   form.set("title", "Example project");
+  form.set("creatorId", "");
   form.set("creatorName", "Example Studio");
   form.set("creatorHandle", "@example");
   form.set("creatorUrl", "https://example.com");
-  form.set("creatorAvatarUrl", "/brand/default-avatar.png");
+  form.set("creatorAvatarUrl", "/brand/default-avatar.svg");
   form.set("description", "A concise project description.");
   form.set("category", "Branding");
   form.set("industries", "Design, Culture");
@@ -37,12 +38,48 @@ describe("admin post validation", () => {
   it("normalizes comma-separated tags and local media paths", () => {
     const result = parseAdminPostForm(validForm());
 
+    expect(result.creator).toMatchObject({
+      id: undefined,
+      name: "Example Studio",
+      avatarUrl: "/brand/default-avatar.svg",
+    });
     expect(result.industries).toEqual(["Design", "Culture"]);
     expect(result.media[0]).toMatchObject({
       url: "/media/growspire.png",
       posterUrl: undefined,
       width: 1200,
     });
+  });
+
+  it("accepts a selected existing creator", () => {
+    const form = validForm();
+    form.set("creatorId", "f97161eb-a54b-4f47-b30a-72334c03405d");
+
+    expect(parseAdminPostForm(form).creator.id).toBe(
+      "f97161eb-a54b-4f47-b30a-72334c03405d",
+    );
+  });
+
+  it("preserves valid managed creator-avatar ownership metadata", () => {
+    const form = validForm();
+    form.set(
+      "creatorAvatarUrl",
+      "https://res.cloudinary.com/demo/image/upload/inspora/creators/example.png",
+    );
+    form.set("creatorAvatarStorageProvider", "cloudinary");
+    form.set("creatorAvatarStorageKey", "inspora/creators/example");
+
+    expect(parseAdminPostForm(form).creator).toMatchObject({
+      avatarStorageProvider: "cloudinary",
+      avatarStorageKey: "inspora/creators/example",
+    });
+  });
+
+  it("rejects incomplete creator-avatar ownership metadata", () => {
+    const form = validForm();
+    form.set("creatorAvatarStorageProvider", "cloudinary");
+
+    expect(() => parseAdminPostForm(form)).toThrow();
   });
 
   it("rejects unsafe slugs and posts without media", () => {

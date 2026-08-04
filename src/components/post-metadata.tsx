@@ -131,13 +131,13 @@ export function PostMetadata({
                 </h1>
                 <div className="mt-[6px] flex h-7 items-center gap-[6px] text-[14px] tracking-[0.032px] text-[rgba(88,88,88,0.8)] xl:text-[15px] min-[1700px]:mt-2 min-[1700px]:h-[30px] min-[1700px]:gap-[7px] min-[1700px]:text-[16px]">
                   <Image
-                    src={post.creatorAvatarUrl}
+                    src={post.creator.avatarUrl}
                     alt=""
                     width={25}
                     height={25}
                     className="size-[22px] rounded-full object-cover xl:size-[23px] min-[1700px]:size-[25px]"
                   />
-                  <span>{post.creatorName}</span>
+                  <span>{post.creator.name}</span>
                 </div>
               </div>
             </div>

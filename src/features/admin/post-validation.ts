@@ -37,6 +37,22 @@ const optionalAssetUrl = z
   .optional()
   .transform((value) => value || undefined);
 
+const creatorSchema = z
+  .object({
+    id: z.union([z.literal(""), z.uuid()]).transform((value) => value || undefined),
+    name: z.string().trim().min(1).max(160),
+    handle: z.string().trim().max(160).optional(),
+    url: optionalRemoteUrl,
+    avatarUrl: localOrRemoteUrl,
+    avatarStorageProvider: z.enum(["cloudinary"]).optional(),
+    avatarStorageKey: z.string().trim().min(1).max(1024).optional(),
+  })
+  .refine(
+    (creator) =>
+      Boolean(creator.avatarStorageProvider) === Boolean(creator.avatarStorageKey),
+    "Managed creator avatars must include their storage provider and key.",
+  );
+
 const mediaSchema = z
   .object({
     type: z.enum(["image", "video"]),
@@ -69,10 +85,7 @@ const postSchema = z.object({
     .max(120)
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Use lowercase letters, numbers, and hyphens."),
   title: z.string().trim().min(1).max(200),
-  creatorName: z.string().trim().min(1).max(160),
-  creatorHandle: z.string().trim().max(160).optional(),
-  creatorUrl: optionalRemoteUrl,
-  creatorAvatarUrl: localOrRemoteUrl,
+  creator: creatorSchema,
   description: z.string().trim().min(1).max(4000),
   category: z.enum(POST_CATEGORIES),
   industries: z.array(z.string().max(80)).max(30),
@@ -95,10 +108,17 @@ export function parseAdminPostForm(formData: FormData): AdminPostInput {
   return postSchema.parse({
     slug: formData.get("slug"),
     title: formData.get("title"),
-    creatorName: formData.get("creatorName"),
-    creatorHandle: String(formData.get("creatorHandle") ?? "") || undefined,
-    creatorUrl: formData.get("creatorUrl"),
-    creatorAvatarUrl: formData.get("creatorAvatarUrl"),
+    creator: {
+      id: formData.get("creatorId"),
+      name: formData.get("creatorName"),
+      handle: String(formData.get("creatorHandle") ?? "") || undefined,
+      url: formData.get("creatorUrl"),
+      avatarUrl: formData.get("creatorAvatarUrl"),
+      avatarStorageProvider:
+        String(formData.get("creatorAvatarStorageProvider") ?? "") || undefined,
+      avatarStorageKey:
+        String(formData.get("creatorAvatarStorageKey") ?? "") || undefined,
+    },
     description: formData.get("description"),
     category: formData.get("category"),
     industries: commaSeparated(formData.get("industries")),

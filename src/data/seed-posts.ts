@@ -1,6 +1,6 @@
 import type { Post, PostCategory } from "@/domain/post";
 
-const avatar = "/brand/default-avatar.png";
+const avatar = "/brand/default-avatar.svg";
 
 function image(
   postId: string,
@@ -33,6 +33,11 @@ function post(
   colors: string[],
   industries: string[],
 ): Post {
+  const creatorId = creatorName
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+
   return {
     id,
     slug: title
@@ -40,8 +45,11 @@ function post(
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, ""),
     title,
-    creatorName,
-    creatorAvatarUrl: avatar,
+    creator: {
+      id: `seed-${creatorId}`,
+      name: creatorName,
+      avatarUrl: avatar,
+    },
     description,
     category,
     styles,

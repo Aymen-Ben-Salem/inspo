@@ -15,6 +15,14 @@ export const ACCEPTED_MEDIA_MIME_TYPES = [
 ] as const;
 
 export type AcceptedMediaMimeType = (typeof ACCEPTED_MEDIA_MIME_TYPES)[number];
+export type MediaUploadKind = "post-media" | "creator-avatar";
+
+export function isAcceptedUploadForKind(
+  kind: MediaUploadKind,
+  contentType: AcceptedMediaMimeType,
+) {
+  return kind === "post-media" || contentType.startsWith("image/");
+}
 
 export function getMediaUploadLimit(contentType: AcceptedMediaMimeType) {
   return contentType.startsWith("video/")

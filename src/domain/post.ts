@@ -23,14 +23,19 @@ export type PostMedia = {
   position: number;
 };
 
+export type Creator = {
+  id: string;
+  name: string;
+  handle?: string;
+  url?: string;
+  avatarUrl: string;
+};
+
 export type Post = {
   id: string;
   slug: string;
   title: string;
-  creatorName: string;
-  creatorHandle?: string;
-  creatorUrl?: string;
-  creatorAvatarUrl: string;
+  creator: Creator;
   description: string;
   category: PostCategory;
   industries: string[];

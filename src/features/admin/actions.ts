@@ -68,6 +68,8 @@ export async function createPostAction(
     return postErrorState(error);
   }
 
+  await deleteManagedMediaAssetsSafely(created.removedManagedMedia);
+
   revalidatePostPaths(created.slug);
   redirect(`/admin/posts/${created.id}/edit?saved=created` as Route);
 }

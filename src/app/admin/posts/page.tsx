@@ -79,7 +79,9 @@ export default async function AdminPostsPage() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
                       <h2 className="truncate text-xl font-medium tracking-[-0.035em]">{post.title}</h2>
-                      <p className="mt-1 truncate text-sm text-[#777]">by {post.creatorName}</p>
+                      <p className="mt-1 truncate text-sm text-[#777]">
+                        by {post.creator.name}
+                      </p>
                     </div>
                     <span
                       className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.08em] ${statusStyles[post.status]}`}

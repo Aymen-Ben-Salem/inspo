@@ -5,28 +5,48 @@ import { randomUUID } from "node:crypto";
 import { and, asc, desc, eq, ne } from "drizzle-orm";
 
 import { requireDatabase } from "@/db/client";
-import { adminAuditLogs, postMedia, posts } from "@/db/schema";
+import { adminAuditLogs, creators, postMedia, posts } from "@/db/schema";
 import type { MediaType } from "@/domain/post";
 
 import type {
   AdminPostInput,
   AdminPostRecord,
   AdminPostStatus,
+  AdminCreatorInput,
+  AdminCreatorRecord,
   ManagedMediaAsset,
 } from "./types";
 
+type Database = ReturnType<typeof requireDatabase>;
 type PostRow = typeof posts.$inferSelect;
+type CreatorRow = typeof creators.$inferSelect;
 type MediaRow = typeof postMedia.$inferSelect;
 
-function mapAdminPost(row: PostRow & { media: MediaRow[] }): AdminPostRecord {
+function mapAdminCreator(row: CreatorRow): AdminCreatorRecord {
+  return {
+    id: row.id,
+    name: row.name,
+    handle: row.handle ?? undefined,
+    url: row.url ?? undefined,
+    avatarUrl: row.avatarUrl,
+    avatarStorageProvider:
+      row.avatarStorageProvider === "cloudinary"
+        ? row.avatarStorageProvider
+        : undefined,
+    avatarStorageKey: row.avatarStorageKey ?? undefined,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  };
+}
+
+function mapAdminPost(
+  row: PostRow & { creator: CreatorRow; media: MediaRow[] },
+): AdminPostRecord {
   return {
     id: row.id,
     slug: row.slug,
     title: row.title,
-    creatorName: row.creatorName,
-    creatorHandle: row.creatorHandle ?? undefined,
-    creatorUrl: row.creatorUrl ?? undefined,
-    creatorAvatarUrl: row.creatorAvatarUrl,
+    creator: mapAdminCreator(row.creator),
     description: row.description,
     category: row.category as AdminPostRecord["category"],
     industries: row.industries,
@@ -81,14 +101,67 @@ function managedAssets(media: MediaRow[]): ManagedMediaAsset[] {
   );
 }
 
-function postValues(input: AdminPostInput) {
+function managedCreatorAvatar(creator: CreatorRow): ManagedMediaAsset[] {
+  return creator.avatarStorageProvider === "cloudinary" && creator.avatarStorageKey
+    ? [
+        {
+          storageProvider: creator.avatarStorageProvider,
+          storageKey: creator.avatarStorageKey,
+          type: "image",
+        },
+      ]
+    : [];
+}
+
+function creatorValues(input: AdminCreatorInput) {
+  return {
+    name: input.name,
+    handle: input.handle,
+    url: input.url,
+    avatarUrl: input.avatarUrl,
+    avatarStorageProvider: input.avatarStorageProvider,
+    avatarStorageKey: input.avatarStorageKey,
+  };
+}
+
+async function resolveCreatorMutation(
+  database: Database,
+  input: AdminCreatorInput,
+) {
+  if (!input.id) {
+    const id = randomUUID();
+    return {
+      id,
+      mutation: database.insert(creators).values({ id, ...creatorValues(input) }),
+      removedManagedMedia: [] as ManagedMediaAsset[],
+    };
+  }
+
+  const existing = await database.query.creators.findFirst({
+    where: eq(creators.id, input.id),
+  });
+  if (!existing) throw new Error("Creator not found.");
+
+  const retainedStorageKey = input.avatarStorageKey;
+  const removedManagedMedia = managedCreatorAvatar(existing).filter(
+    (asset) => asset.storageKey !== retainedStorageKey,
+  );
+
+  return {
+    id: existing.id,
+    mutation: database
+      .update(creators)
+      .set({ ...creatorValues(input), updatedAt: new Date() })
+      .where(eq(creators.id, existing.id)),
+    removedManagedMedia,
+  };
+}
+
+function postValues(input: AdminPostInput, creatorId: string) {
   return {
     slug: input.slug,
     title: input.title,
-    creatorName: input.creatorName,
-    creatorHandle: input.creatorHandle,
-    creatorUrl: input.creatorUrl,
-    creatorAvatarUrl: input.creatorAvatarUrl,
+    creatorId,
     description: input.description,
     category: input.category,
     industries: input.industries,
@@ -103,7 +176,10 @@ export async function getAdminPosts() {
   const database = requireDatabase();
   const rows = await database.query.posts.findMany({
     orderBy: [desc(posts.updatedAt)],
-    with: { media: { orderBy: [asc(postMedia.position)] } },
+    with: {
+      creator: true,
+      media: { orderBy: [asc(postMedia.position)] },
+    },
   });
 
   return rows.map(mapAdminPost);
@@ -113,21 +189,35 @@ export async function getAdminPostById(id: string) {
   const database = requireDatabase();
   const row = await database.query.posts.findFirst({
     where: eq(posts.id, id),
-    with: { media: { orderBy: [asc(postMedia.position)] } },
+    with: {
+      creator: true,
+      media: { orderBy: [asc(postMedia.position)] },
+    },
   });
 
   return row ? mapAdminPost(row) : null;
+}
+
+export async function getAdminCreators() {
+  const database = requireDatabase();
+  const rows = await database.query.creators.findMany({
+    orderBy: [asc(creators.name)],
+  });
+
+  return rows.map(mapAdminCreator);
 }
 
 export async function createAdminPost(input: AdminPostInput, actorId: string) {
   const database = requireDatabase();
   const now = new Date();
   const id = randomUUID();
+  const creator = await resolveCreatorMutation(database, input.creator);
 
   await database.batch([
+    creator.mutation,
     database.insert(posts).values({
       id,
-      ...postValues(input),
+      ...postValues(input, creator.id),
       publishedAt: input.status === "published" ? now : null,
       archivedAt: null,
       createdBy: actorId,
@@ -143,7 +233,11 @@ export async function createAdminPost(input: AdminPostInput, actorId: string) {
     }),
   ]);
 
-  return { id, slug: input.slug };
+  return {
+    id,
+    slug: input.slug,
+    removedManagedMedia: creator.removedManagedMedia,
+  };
 }
 
 export async function updateAdminPost(
@@ -154,7 +248,7 @@ export async function updateAdminPost(
   const database = requireDatabase();
   const existing = await database.query.posts.findFirst({
     where: eq(posts.id, id),
-    with: { media: true },
+    with: { creator: true, media: true },
   });
 
   if (!existing) throw new Error("Post not found.");
@@ -168,12 +262,14 @@ export async function updateAdminPost(
   const removedManagedMedia = managedAssets(existing.media).filter(
     (media) => !retainedStorageKeys.has(media.storageKey),
   );
+  const creator = await resolveCreatorMutation(database, input.creator);
 
   await database.batch([
+    creator.mutation,
     database
       .update(posts)
       .set({
-        ...postValues(input),
+        ...postValues(input, creator.id),
         publishedAt,
         archivedAt: null,
         updatedBy: actorId,
@@ -200,7 +296,10 @@ export async function updateAdminPost(
     id,
     slug: input.slug,
     previousSlug: existing.slug,
-    removedManagedMedia,
+    removedManagedMedia: [
+      ...removedManagedMedia,
+      ...creator.removedManagedMedia,
+    ],
   };
 }
 

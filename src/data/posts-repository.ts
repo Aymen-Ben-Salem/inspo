@@ -4,7 +4,7 @@ import { and, asc, desc, eq, lte } from "drizzle-orm";
 import { cacheLife, cacheTag } from "next/cache";
 
 import { getDatabase } from "@/db/client";
-import { postMedia, posts } from "@/db/schema";
+import { creators, postMedia, posts } from "@/db/schema";
 import { isPostCategory, type MediaType, type Post } from "@/domain/post";
 
 import { seedPosts } from "./seed-posts";
@@ -18,8 +18,9 @@ const PUBLISHED_POSTS_CACHE_LIFE = {
 } as const;
 
 type PostRow = typeof posts.$inferSelect;
+type CreatorRow = typeof creators.$inferSelect;
 type MediaRow = typeof postMedia.$inferSelect;
-type PostRecord = PostRow & { media: MediaRow[] };
+type PostRecord = PostRow & { creator: CreatorRow; media: MediaRow[] };
 
 function mapPost(row: PostRecord): Post {
   if (!isPostCategory(row.category)) {
@@ -30,10 +31,13 @@ function mapPost(row: PostRecord): Post {
     id: row.id,
     slug: row.slug,
     title: row.title,
-    creatorName: row.creatorName,
-    creatorHandle: row.creatorHandle ?? undefined,
-    creatorUrl: row.creatorUrl ?? undefined,
-    creatorAvatarUrl: row.creatorAvatarUrl,
+    creator: {
+      id: row.creator.id,
+      name: row.creator.name,
+      handle: row.creator.handle ?? undefined,
+      url: row.creator.url ?? undefined,
+      avatarUrl: row.creator.avatarUrl,
+    },
     description: row.description,
     category: row.category,
     industries: row.industries,
@@ -70,6 +74,7 @@ export async function getPosts(): Promise<Post[]> {
       where: and(eq(posts.status, "published"), lte(posts.publishedAt, new Date())),
       orderBy: [desc(posts.publishedAt)],
       with: {
+        creator: true,
         media: {
           orderBy: [asc(postMedia.position)],
         },

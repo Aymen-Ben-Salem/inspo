@@ -60,7 +60,7 @@ export function PostCard({ post }: { post: Post }) {
         <span className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/0 to-black/0 opacity-40 transition-opacity duration-300 group-hover:opacity-100" />
         <span className="absolute inset-x-[10px] bottom-[10px] z-10 flex items-end gap-[7px] min-[1800px]:inset-x-3 min-[1800px]:bottom-3 min-[1800px]:gap-2">
           <Image
-            src={post.creatorAvatarUrl}
+            src={post.creator.avatarUrl}
             alt=""
             width={35}
             height={35}
@@ -71,7 +71,7 @@ export function PostCard({ post }: { post: Post }) {
               {post.title}
             </span>
             <span className="block truncate text-[10px] leading-tight text-white/75 min-[1800px]:text-[11px]">
-              {post.creatorName}
+              {post.creator.name}
             </span>
           </span>
         </span>

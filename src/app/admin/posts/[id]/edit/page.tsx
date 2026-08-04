@@ -2,7 +2,10 @@ import { notFound } from "next/navigation";
 
 import { PostEditor } from "@/components/admin/post-editor";
 import { updatePostAction } from "@/features/admin/actions";
-import { getAdminPostById } from "@/features/admin/posts-repository";
+import {
+  getAdminCreators,
+  getAdminPostById,
+} from "@/features/admin/posts-repository";
 
 type EditPostPageProps = {
   params: Promise<{ id: string }>;
@@ -11,7 +14,10 @@ type EditPostPageProps = {
 
 export default async function EditPostPage({ params, searchParams }: EditPostPageProps) {
   const [{ id }, { saved }] = await Promise.all([params, searchParams]);
-  const post = await getAdminPostById(id);
+  const [post, creators] = await Promise.all([
+    getAdminPostById(id),
+    getAdminCreators(),
+  ]);
 
   if (!post) notFound();
 
@@ -28,7 +34,11 @@ export default async function EditPostPage({ params, searchParams }: EditPostPag
           </p>
         ) : null}
       </div>
-      <PostEditor action={updatePostAction.bind(null, post.id)} post={post} />
+      <PostEditor
+        action={updatePostAction.bind(null, post.id)}
+        post={post}
+        creators={creators}
+      />
     </div>
   );
 }

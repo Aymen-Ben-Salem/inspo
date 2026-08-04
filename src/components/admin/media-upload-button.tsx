@@ -6,15 +6,21 @@ import { createMediaUploadSignatureAction } from "@/features/admin/media-actions
 import {
   ACCEPTED_MEDIA_MIME_TYPES,
   getMediaUploadLimit,
+  isAcceptedUploadForKind,
   parseCloudinaryUploadResponse,
+  type MediaUploadKind,
   type UploadedAdminMedia,
 } from "@/features/admin/media-upload";
 
 type UploadStatus = "idle" | "signing" | "uploading";
 
 export function MediaUploadButton({
+  kind = "post-media",
+  label = "Upload file",
   onUploaded,
 }: {
+  kind?: MediaUploadKind;
+  label?: string;
   onUploaded: (media: UploadedAdminMedia) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -26,14 +32,23 @@ export function MediaUploadButton({
     setError("");
 
     const contentType = ACCEPTED_MEDIA_MIME_TYPES.find((type) => type === file.type);
-    if (!contentType || file.size > getMediaUploadLimit(contentType)) {
-      setError("Images and GIFs can be up to 10 MB; videos up to 100 MB.");
+    if (
+      !contentType ||
+      !isAcceptedUploadForKind(kind, contentType) ||
+      file.size > getMediaUploadLimit(contentType)
+    ) {
+      setError(
+        kind === "creator-avatar"
+          ? "Creator avatars must be images up to 10 MB."
+          : "Images and GIFs can be up to 10 MB; videos up to 100 MB.",
+      );
       return;
     }
 
     try {
       setStatus("signing");
       const signature = await createMediaUploadSignatureAction({
+        kind,
         fileName: file.name,
         contentType: file.type,
         size: file.size,
@@ -78,7 +93,11 @@ export function MediaUploadButton({
         <input
           ref={inputRef}
           type="file"
-          accept="image/avif,image/gif,image/jpeg,image/png,image/webp,video/mp4,video/quicktime,video/webm"
+          accept={
+            kind === "creator-avatar"
+              ? "image/avif,image/gif,image/jpeg,image/png,image/webp"
+              : "image/avif,image/gif,image/jpeg,image/png,image/webp,video/mp4,video/quicktime,video/webm"
+          }
           disabled={isPending}
           className="sr-only"
           onChange={(event) => {
@@ -90,7 +109,7 @@ export function MediaUploadButton({
           ? "Preparing..."
           : status === "uploading"
             ? "Uploading..."
-            : "Upload file"}
+            : label}
       </label>
       {error ? (
         <p role="alert" className="max-w-sm text-xs leading-relaxed text-red-700">

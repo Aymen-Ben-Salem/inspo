@@ -1,9 +1,10 @@
 import { neon } from "@neondatabase/serverless";
 import { config } from "dotenv";
+import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/neon-http";
 
 import { seedPosts } from "../data/seed-posts";
-import { postMedia, posts } from "./schema";
+import { creators, postMedia, posts } from "./schema";
 
 config({ path: ".env.local" });
 config();
@@ -18,15 +19,41 @@ const database = drizzle({ client: neon(connectionString) });
 
 async function main() {
   for (const post of seedPosts) {
+    const [existingCreator] = await database
+      .select({ id: creators.id })
+      .from(creators)
+      .where(eq(creators.name, post.creator.name))
+      .limit(1);
+    const [savedCreator] = existingCreator
+      ? await database
+          .update(creators)
+          .set({
+            name: post.creator.name,
+            handle: post.creator.handle,
+            url: post.creator.url,
+            avatarUrl: post.creator.avatarUrl,
+            updatedAt: new Date(),
+          })
+          .where(eq(creators.id, existingCreator.id))
+          .returning({ id: creators.id })
+      : await database
+          .insert(creators)
+          .values({
+            name: post.creator.name,
+            handle: post.creator.handle,
+            url: post.creator.url,
+            avatarUrl: post.creator.avatarUrl,
+          })
+          .returning({ id: creators.id });
+
+    if (!savedCreator) throw new Error(`Could not seed creator: ${post.creator.name}`);
+
     const [savedPost] = await database
       .insert(posts)
       .values({
         slug: post.slug,
         title: post.title,
-        creatorName: post.creatorName,
-        creatorHandle: post.creatorHandle,
-        creatorUrl: post.creatorUrl,
-        creatorAvatarUrl: post.creatorAvatarUrl,
+        creatorId: savedCreator.id,
         description: post.description,
         category: post.category,
         industries: post.industries,
@@ -40,10 +67,7 @@ async function main() {
         target: posts.slug,
         set: {
           title: post.title,
-          creatorName: post.creatorName,
-          creatorHandle: post.creatorHandle,
-          creatorUrl: post.creatorUrl,
-          creatorAvatarUrl: post.creatorAvatarUrl,
+          creatorId: savedCreator.id,
           description: post.description,
           category: post.category,
           industries: post.industries,
