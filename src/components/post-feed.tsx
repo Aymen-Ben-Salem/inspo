@@ -2,6 +2,7 @@ import type { Post } from "@/domain/post";
 
 import { FeedMotion } from "./feed-motion";
 import { PostCard } from "./post-card";
+import { RowFirstMasonry } from "./row-first-masonry";
 
 export function PostFeed({ posts }: { posts: Post[] }) {
   if (posts.length === 0) {
@@ -14,11 +15,11 @@ export function PostFeed({ posts }: { posts: Post[] }) {
 
   return (
     <FeedMotion itemCount={posts.length}>
-      <div className="feed-columns">
+      <RowFirstMasonry itemCount={posts.length}>
         {posts.map((post) => (
           <PostCard key={post.id} post={post} />
         ))}
-      </div>
+      </RowFirstMasonry>
     </FeedMotion>
   );
 }

@@ -29,7 +29,7 @@ export function PostCard({ post }: { post: Post }) {
     : cover.posterUrl;
 
   return (
-    <article data-feed-card className="mb-3 break-inside-avoid">
+    <article data-feed-card>
       <Link
         data-feed-post-id={post.id}
         href={`/posts/${post.slug}` as Route}
