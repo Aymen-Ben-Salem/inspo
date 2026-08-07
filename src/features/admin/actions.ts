@@ -14,6 +14,7 @@ import {
   archiveAdminPost,
   createAdminPost,
   deleteArchivedPost,
+  setAdminPostFeatured,
   updateAdminPost,
 } from "./posts-repository";
 import { deleteSubscriber, unsubscribeSubscriber } from "./subscribers-repository";
@@ -103,6 +104,15 @@ export async function archivePostAction(formData: FormData) {
 
   revalidatePostPaths(archived.slug);
   redirect("/admin/posts" as Route);
+}
+
+export async function setPostFeaturedAction(formData: FormData) {
+  const { userId } = await requireAdmin();
+  const id = idSchema.parse(formData.get("id"));
+  const isFeatured = z.enum(["true", "false"]).parse(formData.get("isFeatured")) === "true";
+  const post = await setAdminPostFeatured(id, isFeatured, userId);
+
+  revalidatePostPaths(post.slug);
 }
 
 export async function deletePostAction(formData: FormData) {

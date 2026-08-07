@@ -2,9 +2,15 @@ import type { Route } from "next";
 import Link from "next/link";
 
 import { ConfirmButton } from "@/components/admin/confirm-button";
+import { FeaturedToggleButton } from "@/components/admin/featured-toggle-button";
 import { AdminMediaPreview } from "@/components/admin/media-preview";
-import { archivePostAction, deletePostAction } from "@/features/admin/actions";
+import {
+  archivePostAction,
+  deletePostAction,
+  setPostFeaturedAction,
+} from "@/features/admin/actions";
 import { getAdminPosts } from "@/features/admin/posts-repository";
+import { isPostView } from "@/domain/post";
 
 const statusStyles = {
   published: "bg-[#dcebdd] text-[#315f37]",
@@ -12,10 +18,20 @@ const statusStyles = {
   archived: "bg-[#e7e7e4] text-[#696965]",
 } as const;
 
-export default async function AdminPostsPage() {
-  const posts = await getAdminPosts();
+type AdminPostsPageProps = {
+  searchParams: Promise<{ view?: string | string[] }>;
+};
+
+export default async function AdminPostsPage({ searchParams }: AdminPostsPageProps) {
+  const { view: viewParam } = await searchParams;
+  const rawView = Array.isArray(viewParam) ? viewParam[0] : viewParam;
+  const view = rawView && isPostView(rawView) ? rawView : "latest";
+  const allPosts = await getAdminPosts();
+  const posts = view === "featured"
+    ? allPosts.filter((post) => post.isFeatured)
+    : allPosts;
   const dateFormatter = new Intl.DateTimeFormat("en", { dateStyle: "medium" });
-  const statusCounts = posts.reduce(
+  const statusCounts = allPosts.reduce(
     (counts, post) => ({ ...counts, [post.status]: counts[post.status] + 1 }),
     { published: 0, draft: 0, archived: 0 },
   );
@@ -26,24 +42,54 @@ export default async function AdminPostsPage() {
         <div className="max-w-5xl">
           <h1 className="text-4xl font-medium tracking-[-0.055em] sm:text-5xl">Posts</h1>
           <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm text-[#777]">
-            <span>{posts.length} total</span>
+            <span>{allPosts.length} total</span>
             <span>{statusCounts.published} published</span>
             <span>{statusCounts.draft} drafts</span>
             {statusCounts.archived ? <span>{statusCounts.archived} archived</span> : null}
           </div>
         </div>
-        <Link
-          href={"/admin/posts/new" as Route}
-          className="focus-ring inline-flex h-11 items-center rounded-full bg-black px-5 text-sm font-medium text-white transition-transform duration-200 hover:-translate-y-0.5 hover:bg-[#252525]"
-        >
-          New post
-        </Link>
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <nav
+            aria-label="Filter admin posts"
+            className="flex items-center rounded-full bg-[#e9e9e5] p-1"
+          >
+            {(["latest", "featured"] as const).map((option) => {
+              const active = view === option;
+              return (
+                <Link
+                  key={option}
+                  href={(option === "latest" ? "/admin/posts" : "/admin/posts?view=featured") as Route}
+                  aria-current={active ? "page" : undefined}
+                  className={`focus-ring inline-flex h-8 items-center rounded-full px-3.5 text-xs transition-colors ${
+                    active
+                      ? "bg-white text-black shadow-sm"
+                      : "text-[#666] hover:text-black"
+                  }`}
+                >
+                  {option === "latest" ? "Latest" : "Featured"}
+                </Link>
+              );
+            })}
+          </nav>
+          <Link
+            href={"/admin/posts/new" as Route}
+            className="focus-ring inline-flex h-11 items-center rounded-full bg-black px-5 text-sm font-medium text-white transition-transform duration-200 hover:-translate-y-0.5 hover:bg-[#252525]"
+          >
+            New post
+          </Link>
+        </div>
       </header>
 
       {posts.length === 0 ? (
         <div className="rounded-2xl border border-black/10 bg-white px-6 py-20 text-center">
-          <p className="text-lg font-medium tracking-[-0.02em]">No posts yet.</p>
-          <p className="mt-2 text-sm text-[#777]">Create the first entry in your inspiration archive.</p>
+          <p className="text-lg font-medium tracking-[-0.02em]">
+            {view === "featured" ? "No featured posts yet." : "No posts yet."}
+          </p>
+          <p className="mt-2 text-sm text-[#777]">
+            {view === "featured"
+              ? "Switch to Latest, then use the star on a post card."
+              : "Create the first entry in your inspiration archive."}
+          </p>
         </div>
       ) : (
         <section
@@ -54,7 +100,7 @@ export default async function AdminPostsPage() {
             const cover = post.media[0];
 
             return (
-              <article key={post.id} className="group flex min-w-0 flex-col bg-white">
+              <article key={post.id} className="group relative flex min-w-0 flex-col bg-white">
                 <Link
                   href={`/admin/posts/${post.id}/edit` as Route}
                   aria-label={`Edit ${post.title}`}
@@ -74,6 +120,18 @@ export default async function AdminPostsPage() {
                     </span>
                   ) : null}
                 </Link>
+                <form action={setPostFeaturedAction} className="absolute right-3 top-3 z-10">
+                  <input type="hidden" name="id" value={post.id} />
+                  <input
+                    type="hidden"
+                    name="isFeatured"
+                    value={String(!post.isFeatured)}
+                  />
+                  <FeaturedToggleButton
+                    title={post.title}
+                    isFeatured={post.isFeatured}
+                  />
+                </form>
 
                 <div className="flex flex-1 flex-col p-5">
                   <div className="flex items-start justify-between gap-4">
@@ -83,17 +141,19 @@ export default async function AdminPostsPage() {
                         by {post.creator.name}
                       </p>
                     </div>
-                    <span
-                      className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.08em] ${statusStyles[post.status]}`}
-                    >
-                      {post.status}
-                    </span>
+                    <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
+                      <span
+                        className={`rounded-full px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.08em] ${statusStyles[post.status]}`}
+                      >
+                        {post.status}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="mt-5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[#777]">
                     <span>{post.category}</span>
                     <span aria-hidden="true">·</span>
-                    <span>Updated {dateFormatter.format(new Date(post.updatedAt))}</span>
+                    <span>Created {dateFormatter.format(new Date(post.createdAt))}</span>
                   </div>
 
                   <div className="mt-auto flex flex-wrap items-center gap-2 pt-5">

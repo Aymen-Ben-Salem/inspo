@@ -53,6 +53,7 @@ function mapAdminPost(
     colors: row.colors,
     styles: row.styles,
     sourceUrl: row.sourceUrl,
+    isFeatured: row.isFeatured,
     status: row.status as AdminPostStatus,
     publishedAt: row.publishedAt?.toISOString(),
     archivedAt: row.archivedAt?.toISOString(),
@@ -168,6 +169,7 @@ function postValues(input: AdminPostInput, creatorId: string) {
     colors: input.colors,
     styles: input.styles,
     sourceUrl: input.sourceUrl,
+    isFeatured: input.isFeatured,
     status: input.status,
   };
 }
@@ -175,7 +177,7 @@ function postValues(input: AdminPostInput, creatorId: string) {
 export async function getAdminPosts() {
   const database = requireDatabase();
   const rows = await database.query.posts.findMany({
-    orderBy: [desc(posts.updatedAt)],
+    orderBy: [desc(posts.createdAt), desc(posts.id)],
     with: {
       creator: true,
       media: { orderBy: [asc(postMedia.position)] },
@@ -328,6 +330,42 @@ export async function archiveAdminPost(id: string, actorId: string) {
   ]);
 
   return existing;
+}
+
+export async function setAdminPostFeatured(
+  id: string,
+  isFeatured: boolean,
+  actorId: string,
+) {
+  const database = requireDatabase();
+  const existing = await database.query.posts.findFirst({
+    where: eq(posts.id, id),
+    columns: { id: true, slug: true, isFeatured: true },
+  });
+
+  if (!existing) throw new Error("Post not found.");
+  if (existing.isFeatured === isFeatured) return existing;
+
+  const now = new Date();
+  await database.batch([
+    database
+      .update(posts)
+      .set({ isFeatured, updatedAt: now, updatedBy: actorId })
+      .where(eq(posts.id, id)),
+    database.insert(adminAuditLogs).values({
+      actorId,
+      action: isFeatured ? "post.featured" : "post.unfeatured",
+      resourceType: "post",
+      resourceId: id,
+      details: {
+        slug: existing.slug,
+        previousIsFeatured: existing.isFeatured,
+        isFeatured,
+      },
+    }),
+  ]);
+
+  return { ...existing, isFeatured };
 }
 
 export async function deleteArchivedPost(id: string, actorId: string) {

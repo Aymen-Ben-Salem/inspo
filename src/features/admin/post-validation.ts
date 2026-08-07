@@ -92,6 +92,7 @@ const postSchema = z.object({
   colors: z.array(z.string().max(80)).max(30),
   styles: z.array(z.string().max(80)).max(30),
   sourceUrl: z.url(),
+  isFeatured: z.boolean(),
   status: z.enum(["draft", "published"]),
   media: z.array(mediaSchema).min(1, "Add at least one media item.").max(20),
 });
@@ -125,6 +126,7 @@ export function parseAdminPostForm(formData: FormData): AdminPostInput {
     colors: commaSeparated(formData.get("colors")),
     styles: commaSeparated(formData.get("styles")),
     sourceUrl: formData.get("sourceUrl"),
+    isFeatured: formData.get("isFeatured") === "on",
     status: formData.get("status"),
     media,
   });

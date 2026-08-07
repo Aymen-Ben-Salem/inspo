@@ -458,6 +458,27 @@ export function PostEditor({
       </div>
 
       <aside className="grid content-start gap-5 xl:sticky xl:top-24 xl:self-start">
+        <section className="grid gap-4 rounded-2xl border border-black/10 bg-white p-5">
+          <div>
+            <p className="text-xs uppercase tracking-[0.14em] text-[#888]">Curation</p>
+            <h2 className="mt-1 text-xl font-medium tracking-[-0.03em]">Placement</h2>
+          </div>
+          <label className="flex cursor-pointer items-start gap-3 rounded-xl bg-[#f4f4f1] p-4">
+            <input
+              type="checkbox"
+              name="isFeatured"
+              defaultChecked={post?.isFeatured}
+              className="mt-0.5 size-4 accent-black"
+            />
+            <span className="grid gap-1">
+              <span className="text-sm font-medium text-[#333]">Featured</span>
+              <span className="text-xs leading-5 text-[#777]">
+                Show this post in the Featured view once it is published.
+              </span>
+            </span>
+          </label>
+        </section>
+
         <section className="grid gap-5 rounded-2xl border border-black/10 bg-white p-5">
           <div>
             <p className="text-xs uppercase tracking-[0.14em] text-[#888]">Classification</p>

@@ -44,11 +44,19 @@ describe("admin post validation", () => {
       avatarUrl: "/brand/default-avatar.svg",
     });
     expect(result.industries).toEqual(["Design", "Culture"]);
+    expect(result.isFeatured).toBe(false);
     expect(result.media[0]).toMatchObject({
       url: "/media/growspire.png",
       posterUrl: undefined,
       width: 1200,
     });
+  });
+
+  it("marks a post as featured when selected", () => {
+    const form = validForm();
+    form.set("isFeatured", "on");
+
+    expect(parseAdminPostForm(form).isFeatured).toBe(true);
   });
 
   it("accepts a selected existing creator", () => {

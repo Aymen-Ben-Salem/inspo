@@ -46,6 +46,7 @@ export type AdminPostInput = {
   colors: string[];
   styles: string[];
   sourceUrl: string;
+  isFeatured: boolean;
   status: Exclude<AdminPostStatus, "archived">;
   media: AdminMediaInput[];
 };
