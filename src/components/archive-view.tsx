@@ -1,23 +1,31 @@
-import type { Post, PostCategory } from "@/domain/post";
+import type { PostPage } from "@/data/post-pagination";
+import type { PostCategory, PostView } from "@/domain/post";
 
-import { PostFeed } from "./post-feed";
+import { InfinitePostFeed } from "./infinite-post-feed";
 import { SiteHeader } from "./site-header";
 
 export function ArchiveView({
-  posts,
+  page,
   category,
+  view = "latest",
 }: {
-  posts: Post[];
+  page: PostPage;
   category?: PostCategory;
+  view?: PostView;
 }) {
   return (
     <main className="min-h-[100dvh] w-full max-w-full overflow-x-clip bg-white">
-      <SiteHeader category={category} />
+      <SiteHeader category={category} view={view} />
       <section
         aria-label="Design inspiration"
         className="mx-auto max-w-[1705px] px-4 pb-16 sm:px-5 xl:px-6 2xl:px-8 min-[1700px]:px-11"
       >
-        <PostFeed posts={posts} />
+        <InfinitePostFeed
+          key={`${view}:${category ?? "All"}`}
+          initialPage={page}
+          category={category}
+          view={view}
+        />
       </section>
     </main>
   );

@@ -60,7 +60,9 @@ async function main() {
         colors: post.colors,
         styles: post.styles,
         sourceUrl: post.sourceUrl,
+        isFeatured: post.isFeatured,
         status: "published",
+        createdAt: new Date(post.createdAt),
         publishedAt: new Date(post.publishedAt),
       })
       .onConflictDoUpdate({
@@ -74,6 +76,7 @@ async function main() {
           colors: post.colors,
           styles: post.styles,
           sourceUrl: post.sourceUrl,
+          isFeatured: post.isFeatured,
           status: "published",
           publishedAt: new Date(post.publishedAt),
           updatedAt: new Date(),

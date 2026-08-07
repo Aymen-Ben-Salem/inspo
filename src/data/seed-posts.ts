@@ -38,6 +38,8 @@ function post(
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
 
+  const createdAt = `2026-07-${String(31 - Number(id)).padStart(2, "0")}T10:00:00.000Z`;
+
   return {
     id,
     slug: title
@@ -56,7 +58,9 @@ function post(
     colors,
     industries,
     sourceUrl: url.startsWith("http") ? url : "https://www.behance.net/",
-    publishedAt: `2026-07-${String(31 - Number(id)).padStart(2, "0")}T10:00:00.000Z`,
+    createdAt,
+    publishedAt: createdAt,
+    isFeatured: ["1", "4", "9"].includes(id),
     media: [image(id, url, title, width, height)],
   };
 }

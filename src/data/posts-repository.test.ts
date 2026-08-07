@@ -12,8 +12,10 @@ vi.mock("@/db/schema", () => ({ postMedia: {}, posts: {} }));
 vi.mock("@/domain/post", async () => import("../domain/post"));
 
 import {
+  getAdjacentPosts,
   getPostBySlug,
-  getPosts,
+  getPostPage,
+  getPublishedSlugs,
   PUBLISHED_POSTS_CACHE_TAG,
 } from "./posts-repository";
 
@@ -24,7 +26,7 @@ describe("published post caching", () => {
   });
 
   it("assigns a bounded cache lifetime and invalidation tag", async () => {
-    await getPosts();
+    await getPostPage();
 
     expect(cacheLife).toHaveBeenCalledWith({
       stale: 300,
@@ -35,10 +37,22 @@ describe("published post caching", () => {
   });
 
   it("resolves a post from the shared published collection", async () => {
-    const posts = await getPosts();
-    const expected = posts[0];
+    const page = await getPostPage();
+    const expected = page.items[0];
 
     expect(expected).toBeDefined();
     await expect(getPostBySlug(expected!.slug)).resolves.toEqual(expected);
+  });
+
+  it("returns focused navigation and slug data without requiring a full media page", async () => {
+    const page = await getPostPage();
+    const current = page.items[0];
+
+    expect(current).toBeDefined();
+    await expect(getPublishedSlugs()).resolves.toContain(current!.slug);
+    await expect(getAdjacentPosts(current!)).resolves.toEqual({
+      previousPost: expect.objectContaining({ slug: expect.any(String) }),
+      nextPost: expect.objectContaining({ slug: expect.any(String) }),
+    });
   });
 });

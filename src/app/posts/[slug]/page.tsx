@@ -5,8 +5,9 @@ import { ArchiveView } from "@/components/archive-view";
 import { PostDetail } from "@/components/post-detail";
 import { PostDialog } from "@/components/post-dialog";
 import {
+  getAdjacentPosts,
   getPostBySlug,
-  getPosts,
+  getPostPage,
   getPublishedSlugs,
 } from "@/data/posts-repository";
 
@@ -44,14 +45,14 @@ export default async function PostPage({ params }: PostPageProps) {
 
   if (!post) notFound();
 
-  const posts = await getPosts();
-  const currentIndex = posts.findIndex((candidate) => candidate.id === post.id);
-  const previousPost = posts[(currentIndex - 1 + posts.length) % posts.length] ?? post;
-  const nextPost = posts[(currentIndex + 1) % posts.length] ?? post;
+  const [page, { previousPost, nextPost }] = await Promise.all([
+    getPostPage(),
+    getAdjacentPosts(post),
+  ]);
 
   return (
     <>
-      <ArchiveView posts={posts} />
+      <ArchiveView page={page} />
       <PostDialog closeMode="home">
         <PostDetail
           post={post}

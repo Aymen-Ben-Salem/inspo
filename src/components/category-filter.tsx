@@ -1,19 +1,42 @@
 import Link from "next/link";
 import type { Route } from "next";
 
-import { POST_CATEGORIES, type PostCategory } from "@/domain/post";
+import { POST_CATEGORIES, type PostCategory, type PostView } from "@/domain/post";
 
-export function CategoryFilter({ current }: { current?: PostCategory }) {
+function archiveHref({
+  category,
+  view,
+}: {
+  category?: PostCategory;
+  view: PostView;
+}) {
+  const searchParams = new URLSearchParams();
+  if (view === "featured") searchParams.set("view", view);
+  if (category) searchParams.set("category", category);
+  const query = searchParams.toString();
+  return (query ? `/?${query}` : "/") as Route;
+}
+
+export function CategoryFilter({
+  current,
+  view,
+}: {
+  current?: PostCategory;
+  view: PostView;
+}) {
   const categories = ["All", ...POST_CATEGORIES] as const;
 
   return (
     <nav
       aria-label="Filter posts by category"
-      className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      className="flex min-w-0 items-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     >
       {categories.map((category) => {
         const active = category === "All" ? !current : current === category;
-        const href = (category === "All" ? "/" : `/?category=${encodeURIComponent(category)}`) as Route;
+        const href = archiveHref({
+          category: category === "All" ? undefined : category,
+          view,
+        });
 
         return (
           <Link

@@ -9,6 +9,8 @@ export const POST_CATEGORIES = [
 ] as const;
 
 export type PostCategory = (typeof POST_CATEGORIES)[number];
+export const POST_VIEWS = ["latest", "featured"] as const;
+export type PostView = (typeof POST_VIEWS)[number];
 export type MediaType = "image" | "video";
 
 export type PostMedia = {
@@ -42,12 +44,18 @@ export type Post = {
   colors: string[];
   styles: string[];
   sourceUrl: string;
+  createdAt: string;
   publishedAt: string;
+  isFeatured: boolean;
   media: PostMedia[];
 };
 
 export function isPostCategory(value: string): value is PostCategory {
   return POST_CATEGORIES.some((category) => category === value);
+}
+
+export function isPostView(value: string): value is PostView {
+  return POST_VIEWS.some((view) => view === value);
 }
 
 export function isGifUrl(value: string) {

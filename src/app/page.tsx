@@ -1,19 +1,21 @@
 import { ArchiveView } from "@/components/archive-view";
-import { getPosts } from "@/data/posts-repository";
-import { isPostCategory } from "@/domain/post";
+import { getPostPage } from "@/data/posts-repository";
+import { isPostCategory, isPostView } from "@/domain/post";
 
 type HomeProps = {
-  searchParams: Promise<{ category?: string | string[] }>;
+  searchParams: Promise<{
+    category?: string | string[];
+    view?: string | string[];
+  }>;
 };
 
 export default async function Home({ searchParams }: HomeProps) {
-  const { category: categoryParam } = await searchParams;
+  const { category: categoryParam, view: viewParam } = await searchParams;
   const rawCategory = Array.isArray(categoryParam) ? categoryParam[0] : categoryParam;
   const category = rawCategory && isPostCategory(rawCategory) ? rawCategory : undefined;
-  const allPosts = await getPosts();
-  const posts = category
-    ? allPosts.filter((post) => post.category === category)
-    : allPosts;
+  const rawView = Array.isArray(viewParam) ? viewParam[0] : viewParam;
+  const view = rawView && isPostView(rawView) ? rawView : "latest";
+  const page = await getPostPage({ category, view });
 
-  return <ArchiveView posts={posts} category={category} />;
+  return <ArchiveView page={page} category={category} view={view} />;
 }

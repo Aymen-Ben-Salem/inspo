@@ -13,7 +13,7 @@ describe("database schema", () => {
     expect(creatorsConfig.indexes).toHaveLength(1);
     expect(creatorsConfig.checks).toHaveLength(2);
     expect(postsConfig.name).toBe("posts");
-    expect(postsConfig.indexes).toHaveLength(3);
+    expect(postsConfig.indexes).toHaveLength(4);
     expect(postsConfig.checks).toHaveLength(6);
     expect(postsConfig.foreignKeys).toHaveLength(1);
     expect(mediaConfig.foreignKeys).toHaveLength(1);

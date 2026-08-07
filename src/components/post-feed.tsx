@@ -13,7 +13,7 @@ export function PostFeed({ posts }: { posts: Post[] }) {
   }
 
   return (
-    <FeedMotion>
+    <FeedMotion itemCount={posts.length}>
       <div className="feed-columns">
         {posts.map((post) => (
           <PostCard key={post.id} post={post} />

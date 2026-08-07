@@ -1,5 +1,6 @@
 import { relations, sql } from "drizzle-orm";
 import {
+  boolean,
   check,
   index,
   integer,
@@ -59,6 +60,7 @@ export const posts = pgTable(
     styles: text("styles").array().default(sql`'{}'::text[]`).notNull(),
     sourceUrl: text("source_url").notNull(),
     status: text("status").default("draft").notNull(),
+    isFeatured: boolean("is_featured").default(false).notNull(),
     publishedAt: timestamp("published_at", { withTimezone: true, mode: "date" }),
     archivedAt: timestamp("archived_at", { withTimezone: true, mode: "date" }),
     createdBy: text("created_by"),
@@ -67,12 +69,15 @@ export const posts = pgTable(
   },
   (table) => [
     uniqueIndex("posts_slug_unique").on(table.slug),
-    index("posts_published_at_idx")
-      .on(table.publishedAt.desc())
+    index("posts_created_at_idx")
+      .on(table.createdAt.desc(), table.id.desc())
       .where(sql`${table.status} = 'published'`),
-    index("posts_category_published_at_idx")
-      .on(table.category, table.publishedAt.desc())
+    index("posts_category_created_at_idx")
+      .on(table.category, table.createdAt.desc(), table.id.desc())
       .where(sql`${table.status} = 'published'`),
+    index("posts_featured_created_at_idx")
+      .on(table.createdAt.desc(), table.id.desc())
+      .where(sql`${table.status} = 'published' and ${table.isFeatured} = true`),
     check("posts_slug_format", sql`${table.slug} ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$'`),
     check("posts_title_not_blank", sql`length(trim(${table.title})) > 0`),
     check(

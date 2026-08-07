@@ -6,15 +6,31 @@ import { type PropsWithChildren, useRef } from "react";
 
 gsap.registerPlugin(useGSAP);
 
-export function FeedMotion({ children }: PropsWithChildren) {
+export function FeedMotion({
+  children,
+  itemCount,
+}: PropsWithChildren<{ itemCount: number }>) {
   const scope = useRef<HTMLDivElement>(null);
 
   useGSAP(
     () => {
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      const cards = gsap.utils.toArray<HTMLElement>(
+        "[data-feed-card]:not([data-feed-revealed])",
+      );
+
+      cards.forEach((card) => {
+        card.dataset.feedRevealed = "";
+      });
+
+      if (
+        cards.length === 0 ||
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      ) {
+        return;
+      }
 
       gsap.fromTo(
-        "[data-feed-card]",
+        cards,
         { autoAlpha: 0, y: 14, scale: 0.985 },
         {
           autoAlpha: 1,
@@ -27,7 +43,7 @@ export function FeedMotion({ children }: PropsWithChildren) {
         },
       );
     },
-    { scope },
+    { scope, dependencies: [itemCount] },
   );
 
   return <div ref={scope}>{children}</div>;

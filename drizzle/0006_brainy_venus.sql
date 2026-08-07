@@ -1,0 +1,2 @@
+DROP INDEX "posts_published_at_idx";--> statement-breakpoint
+CREATE INDEX "posts_published_at_idx" ON "posts" USING btree ("published_at" DESC NULLS LAST,"id" DESC NULLS LAST) WHERE "posts"."status" = 'published';
