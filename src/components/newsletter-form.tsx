@@ -26,9 +26,19 @@ export function NewsletterForm({ compact = false }: { compact?: boolean }) {
           source: compact ? "header" : "post-detail",
         }),
       });
-      const payload = (await response.json()) as { message?: string };
+      let payload: { message?: string } = {};
+      if (response.headers.get("content-type")?.includes("application/json")) {
+        try {
+          payload = (await response.json()) as { message?: string };
+        } catch {
+          // A proxy or firewall can return an empty or malformed error body.
+        }
+      }
 
       if (!response.ok) {
+        if (response.status === 429) {
+          throw new Error("Too many attempts. Try again in a few minutes.");
+        }
         throw new Error(payload.message ?? "Could not subscribe right now.");
       }
 
