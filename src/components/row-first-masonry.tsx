@@ -20,7 +20,8 @@ export function RowFirstMasonry({
 
     function sizeCard(gridElement: HTMLDivElement, card: HTMLElement) {
       const rowGap = Number.parseFloat(getComputedStyle(gridElement).rowGap) || 0;
-      const height = card.getBoundingClientRect().height;
+      // offsetHeight reflects layout size without GSAP's reveal transform.
+      const height = card.offsetHeight;
       const span = Math.max(
         1,
         Math.ceil((height + rowGap) / (GRID_ROW_HEIGHT + rowGap)),
