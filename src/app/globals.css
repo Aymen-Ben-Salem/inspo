@@ -46,8 +46,13 @@ input {
 .feed-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 12px;
+  column-gap: 12px;
+  row-gap: 0;
   align-items: start;
+}
+
+.feed-grid > [data-feed-card] {
+  padding-bottom: 12px;
 }
 
 .feed-grid[data-masonry-ready] {
