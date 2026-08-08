@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import type { ReactNode } from "react";
+import { Analytics } from "@vercel/analytics/next";
 
 import "./globals.css";
 
@@ -37,6 +38,7 @@ export default function RootLayout({
       <body className="font-[family-name:var(--font-inter)]">
         {children}
         {modal}
+        <Analytics />
       </body>
     </html>
   );
