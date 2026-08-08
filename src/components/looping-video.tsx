@@ -14,9 +14,24 @@ type LoopingVideoProps = Omit<
 };
 
 function playSilently(video: HTMLVideoElement) {
+  video.controls = false;
+  video.defaultMuted = true;
+  video.loop = true;
+  video.muted = true;
+  video.playsInline = true;
+  video.setAttribute("muted", "");
+  video.setAttribute("playsinline", "");
+  video.setAttribute("webkit-playsinline", "");
+
   void video.play().catch(() => {
     // The poster remains visible if a browser or device declines autoplay.
   });
+}
+
+export function resumeLoopingVideos(root: ParentNode) {
+  root
+    .querySelectorAll<HTMLVideoElement>("[data-looping-video]")
+    .forEach(playSilently);
 }
 
 export function LoopingVideo({
@@ -57,12 +72,16 @@ export function LoopingVideo({
     <video
       ref={videoRef}
       {...props}
+      data-looping-video
       autoPlay={eager}
       controls={false}
+      controlsList="nodownload nofullscreen noremoteplayback"
+      disablePictureInPicture
+      disableRemotePlayback
       loop
       muted
       playsInline
-      preload={preload ?? (eager ? "metadata" : "none")}
+      preload={preload ?? (eager ? "auto" : "none")}
     />
   );
 }

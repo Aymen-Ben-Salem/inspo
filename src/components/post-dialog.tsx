@@ -19,6 +19,7 @@ import {
   getCornerRadius,
   getIntrinsicMediaAspectRatio,
 } from "./post-dialog-media-proxy";
+import { resumeLoopingVideos } from "./looping-video";
 
 gsap.registerPlugin(useGSAP);
 
@@ -80,6 +81,7 @@ function restoreGalleryAfterTransition(
 ) {
   gsap.set(gallery, { clearProps: "overflow,position,zIndex" });
   gsap.set(getOtherGalleryItems(gallery, hero), { clearProps: "visibility" });
+  resumeLoopingVideos(gallery);
 }
 
 export function PostDialog({
@@ -336,6 +338,7 @@ export function PostDialog({
 
         if (reducedMotion) {
           gsap.set([backdrop, gallery, sidebar, hero], { clearProps: "all" });
+          resumeLoopingVideos(gallery);
           return true;
         }
 
